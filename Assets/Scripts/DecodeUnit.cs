@@ -1,18 +1,36 @@
-using System.Collections;
+using System;
 using System.Collections.Generic;
-using UnityEngine;
 
-public class DecodeUnit : MonoBehaviour
+public class DecodeUnit
 {
-    // Start is called before the first frame update
-    void Start()
+    private Stack<Tuple<Opcode, int, int>> _fetchDecodeBuffer;
+    private Stack<Tuple<Opcode, int, int>> _decodeExecuteBuffer;
+    private int _pipelines;
+
+    public DecodeUnit(Stack<Tuple<Opcode, int, int>> fetchDecodeBuffer,
+        Stack<Tuple<Opcode, int, int>> decodeExecuteBuffer,
+        int pipelines)
     {
+        _fetchDecodeBuffer = fetchDecodeBuffer;
+        _decodeExecuteBuffer = decodeExecuteBuffer;
+        _pipelines = pipelines;
         
+        EventManager.Tick += Decode;
     }
 
-    // Update is called once per frame
-    void Update()
+    ~DecodeUnit()
     {
-        
+        EventManager.Tick -= Decode;
+    }
+
+    private void Decode()
+    {
+        for (int i = 0; i < _pipelines; i++)
+        {
+            if (_fetchDecodeBuffer.TryPop(out Tuple<Opcode, int, int> instruction))
+            {
+                _decodeExecuteBuffer.Push(instruction);
+            }
+        }
     }
 }

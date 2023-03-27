@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-enum Opcode {
+public enum Opcode {
     ADD,
     ADDI,
     SUB,
@@ -23,7 +23,7 @@ enum Opcode {
     BREAK,
 }
 
-enum Mode
+public enum Mode
 {
     Release,
     DebugC,
