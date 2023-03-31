@@ -19,7 +19,7 @@ public class Processor
     public int ProgramCounter;
     private int _cycle;
 
-    private Mode _mode;
+    public Mode Mode;
 
     public Processor(int pipelines)
     {
@@ -30,7 +30,7 @@ public class Processor
         _executionUnits = new List<ExecutionUnit>();
         for (int i = 0; i < Pipelines; i++)
         {
-            _executionUnits.Add(new ExecutionUnit());
+            _executionUnits.Add(new ExecutionUnit(this));
         }
         
         FetchDecodeBuffer = new List<Tuple<Opcode, int, int>>();
