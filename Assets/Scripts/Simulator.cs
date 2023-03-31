@@ -9,9 +9,16 @@ public class Simulator : MonoBehaviour
     private const string DefaultFilePath = "Assets\\Scripts\\Assembly\\Test\\Test.txt";
     private const Mode DefaultMode = Mode.RELEASE;
 
+    private Processor _processor;
+
     public void OnRun()
     {
         Simulate(input.text.Split(' '));
+    }
+
+    public void OnStep()
+    {
+        _processor.TriggerTick();
     }
     
     private void Simulate(string[] args)
@@ -26,9 +33,8 @@ public class Simulator : MonoBehaviour
         if (b != -1) Enum.TryParse(args[b + 1], out mode);
         else mode = DefaultMode;
 
-        Processor processor = new Processor(1, 16);
+        _processor = new Processor(1, 16);
         var program = Parsing.LoadProgram(filePath);
-        processor.Initialise(new int[128], program, mode);
-        processor.Process();
+        _processor.Process(new int[128], program, mode);
     }
 }

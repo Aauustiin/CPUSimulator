@@ -24,6 +24,8 @@ public class Processor
     private bool _finished;
 
     public Mode Mode;
+    
+    public static event Action Tick;
 
     public Processor(int pipelines, int registers)
     {
@@ -39,15 +41,15 @@ public class Processor
 
         Registers = new int[registers];
 
-        EventManager.Tick += OnTick;
+        Tick += OnTick;
     }
 
     ~Processor()
     {
-        EventManager.Tick -= OnTick;
+        Tick -= OnTick;
     }
     
-    public void Initialise(int[] memory, Tuple<Opcode, int, int>[] instructions, Mode mode)
+    public void Process(int[] memory, Tuple<Opcode, int, int>[] instructions, Mode mode)
     {
         FetchDecodeBuffer = new List<Tuple<Opcode, int, int>>();
         DecodeExecuteBuffer = new List<Tuple<Opcode, int, int>>();
@@ -62,11 +64,8 @@ public class Processor
         _finished = false;
 
         Mode = mode;
-    }
-
-    public void Process()
-    {
-        EventManager.TriggerTick();
+        
+        TriggerTick();
     }
 
     private void OnTick()
@@ -85,10 +84,10 @@ public class Processor
 
         if (Mode == Mode.DEBUGS)
         {
-            Debug.Log("Registers: " + Registers);
-            Debug.Log("Memory: " + Memory);
+            Debug.Log("Registers: " + string.Join(',', Registers));
+            Debug.Log("Memory: " + string.Join(',', Memory));
         }
-        else EventManager.TriggerTick();
+        else TriggerTick();
     }
 
     public void Halt()
@@ -101,5 +100,10 @@ public class Processor
         Debug.Log("Instructions Executed: " + InstructionsExecuted);
         Debug.Log("Cycles Taken: " + _cycle);
         Debug.Log("Instructions Per Cycle (IPC): " + ((float)InstructionsExecuted/_cycle).ToString("N2"));
+    }
+    
+    public void TriggerTick()
+    {
+        Tick?.Invoke();
     }
 }
