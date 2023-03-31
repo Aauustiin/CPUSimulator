@@ -10,12 +10,13 @@ public class Processor
     private readonly DecodeUnit _decodeUnit;
     private readonly List<ExecutionUnit> _executionUnits;
 
-    public readonly List<Tuple<Opcode, int, int>> FetchDecodeBuffer;
-    public readonly List<Tuple<Opcode, int, int>> DecodeExecuteBuffer;
+    // Could experiment with making these buffers a fixed size
+    public List<Tuple<Opcode, int, int>> FetchDecodeBuffer;
+    public List<Tuple<Opcode, int, int>> DecodeExecuteBuffer;
 
     public readonly int[] Registers;
-    public readonly int[] Memory;
-    public readonly Tuple<Opcode, int, int>[] Instructions;
+    public int[] Memory;
+    public Tuple<Opcode, int, int>[] Instructions;
 
     public int ProgramCounter;
     private int _cycle;
@@ -24,7 +25,7 @@ public class Processor
 
     public Mode Mode;
 
-    public Processor(int pipelines, int registers, int memory, Tuple<Opcode, int, int>[] instructions, Mode mode)
+    public Processor(int pipelines, int registers)
     {
         Pipelines = pipelines;
         
@@ -35,12 +36,24 @@ public class Processor
         {
             _executionUnits.Add(new ExecutionUnit(this));
         }
-        
-        FetchDecodeBuffer = new List<Tuple<Opcode, int, int>>();
-        DecodeExecuteBuffer = new List<Tuple<Opcode, int, int>>();
 
         Registers = new int[registers];
-        Memory = new int[memory];
+
+        EventManager.Tick += OnTick;
+    }
+
+    ~Processor()
+    {
+        EventManager.Tick -= OnTick;
+    }
+    
+    public void Initialise(int[] memory, Tuple<Opcode, int, int>[] instructions, Mode mode)
+    {
+        FetchDecodeBuffer = new List<Tuple<Opcode, int, int>>();
+        DecodeExecuteBuffer = new List<Tuple<Opcode, int, int>>();
+        
+        Array.Clear(Registers, 0, Registers.Length);
+        Memory = memory;
         Instructions = instructions;
         
         ProgramCounter = 0;
@@ -49,14 +62,11 @@ public class Processor
         _finished = false;
 
         Mode = mode;
-
-        EventManager.Tick += OnTick;
-        EventManager.TriggerTick();
     }
 
-    ~Processor()
+    public void Process()
     {
-        EventManager.Tick -= OnTick;
+        EventManager.TriggerTick();
     }
 
     private void OnTick()
