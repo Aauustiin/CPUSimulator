@@ -3,30 +3,18 @@ using System.Collections.Generic;
 
 public class DecodeUnit
 {
-    private Stack<Tuple<Opcode, int, int>> _fetchDecodeBuffer;
-    private Stack<Tuple<Opcode, int, int>> _decodeExecuteBuffer;
-    private int _pipelines;
+    private readonly Processor _processor;
 
-    public DecodeUnit(Stack<Tuple<Opcode, int, int>> fetchDecodeBuffer,
-        Stack<Tuple<Opcode, int, int>> decodeExecuteBuffer,
-        int pipelines)
+    public DecodeUnit(Processor processor)
     {
-        _fetchDecodeBuffer = fetchDecodeBuffer;
-        _decodeExecuteBuffer = decodeExecuteBuffer;
-        _pipelines = pipelines;
-        
-        EventManager.Tick += Decode;
+        _processor = processor;
     }
 
-    ~DecodeUnit()
+    public List<Tuple<Opcode, int, int>> Decode()
     {
-        EventManager.Tick -= Decode;
-    }
-
-    private void Decode()
-    {
-        for (int i = 0; i < _pipelines; i++)
+        for (int i = 0; i < _processor.Pipelines; i++)
         {
+            _processor.FetchDecodeBuffer[]
             if (_fetchDecodeBuffer.TryPop(out Tuple<Opcode, int, int> instruction))
             {
                 _decodeExecuteBuffer.Push(instruction);
