@@ -18,6 +18,7 @@ public class Processor
 
     public int ProgramCounter;
     private int _cycle;
+    private bool _finished;
 
     public Mode Mode;
 
@@ -43,12 +44,23 @@ public class Processor
         
         ProgramCounter = 0;
         _cycle = 0;
+        _finished = false;
 
         this.Mode = Mode.RELEASE;
+
+        EventManager.Tick += OnTick;
+        EventManager.TriggerTick();
     }
 
-    private void Tick()
+    ~Processor()
     {
+        EventManager.Tick -= OnTick;
+    }
+
+    private void OnTick()
+    {
+        if (_finished) return;
+        
         var fetchedInstructions = _fetchUnit.Fetch();
         var decodedInstructions = _decodeUnit.Decode();
         foreach (var eUnit in _executionUnits)
@@ -58,5 +70,13 @@ public class Processor
         FetchDecodeBuffer.AddRange(fetchedInstructions);
         DecodeExecuteBuffer.AddRange(decodedInstructions);
         _cycle++;
+        
+        if (Mode != Mode.DEBUGS) EventManager.TriggerTick();
+    }
+
+    public void Halt()
+    {
+        _finished = true;
+        //Log stats
     }
 }

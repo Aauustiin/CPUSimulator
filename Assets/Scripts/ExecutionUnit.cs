@@ -95,6 +95,9 @@ public class ExecutionUnit
                     _processor.Mode = Mode.DEBUGS;
                 }
                 break;
+            case Opcode.HALT:
+                _processor.Halt();
+                break;
         }
     }
 }

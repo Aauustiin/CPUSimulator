@@ -17,6 +17,7 @@ public enum Opcode {
     BRANCHG,
     JUMP,
     BREAK,
+    HALT,
 }
 
 public enum Mode
