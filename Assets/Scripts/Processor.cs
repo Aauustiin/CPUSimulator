@@ -21,13 +21,20 @@ public class Processor
 
     private Mode _mode;
 
-    private void Start()
+    public Processor(int pipelines)
     {
-        FetchDecodeBuffer = new List<Tuple<Opcode, int, int>>();
-        DecodeExecuteBuffer = new List<Tuple<Opcode, int, int>>();
+        Pipelines = pipelines;
         
         _fetchUnit = new FetchUnit(this);
-        //_decodeUnit = new DecodeUnit();
+        _decodeUnit = new DecodeUnit(this);
+        _executionUnits = new List<ExecutionUnit>();
+        for (int i = 0; i < Pipelines; i++)
+        {
+            _executionUnits.Add(new ExecutionUnit());
+        }
+        
+        FetchDecodeBuffer = new List<Tuple<Opcode, int, int>>();
+        DecodeExecuteBuffer = new List<Tuple<Opcode, int, int>>();
     }
 
     private void Tick()

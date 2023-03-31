@@ -12,13 +12,16 @@ public class DecodeUnit
 
     public List<Tuple<Opcode, int, int>> Decode()
     {
+        List<Tuple<Opcode, int, int>> decodedInstructions = new List<Tuple<Opcode, int, int>>();
         for (int i = 0; i < _processor.Pipelines; i++)
         {
-            _processor.FetchDecodeBuffer[]
-            if (_fetchDecodeBuffer.TryPop(out Tuple<Opcode, int, int> instruction))
+            if (_processor.FetchDecodeBuffer.Count > 0)
             {
-                _decodeExecuteBuffer.Push(instruction);
+                var instruction = _processor.FetchDecodeBuffer[0];
+                decodedInstructions.Add(instruction);
+                _processor.FetchDecodeBuffer.RemoveAt(0);
             }
         }
+        return decodedInstructions;
     }
 }
