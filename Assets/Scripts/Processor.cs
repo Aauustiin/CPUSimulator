@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 public class Processor
 {
@@ -18,11 +19,12 @@ public class Processor
 
     public int ProgramCounter;
     private int _cycle;
+    public int InstructionsExecuted;
     private bool _finished;
 
     public Mode Mode;
 
-    public Processor(int pipelines, int registers, int memory, Tuple<Opcode, int, int>[] instructions)
+    public Processor(int pipelines, int registers, int memory, Tuple<Opcode, int, int>[] instructions, Mode mode)
     {
         Pipelines = pipelines;
         
@@ -39,14 +41,14 @@ public class Processor
 
         Registers = new int[registers];
         Memory = new int[memory];
-
         Instructions = instructions;
         
         ProgramCounter = 0;
         _cycle = 0;
+        InstructionsExecuted = 0;
         _finished = false;
 
-        this.Mode = Mode.RELEASE;
+        Mode = mode;
 
         EventManager.Tick += OnTick;
         EventManager.TriggerTick();
@@ -70,13 +72,24 @@ public class Processor
         FetchDecodeBuffer.AddRange(fetchedInstructions);
         DecodeExecuteBuffer.AddRange(decodedInstructions);
         _cycle++;
-        
-        if (Mode != Mode.DEBUGS) EventManager.TriggerTick();
+
+        if (Mode == Mode.DEBUGS)
+        {
+            Debug.Log("Registers: " + Registers);
+            Debug.Log("Memory: " + Memory);
+        }
+        else EventManager.TriggerTick();
     }
 
     public void Halt()
     {
         _finished = true;
-        //Log stats
+
+        Debug.Log("Finished!");
+        Debug.Log("Registers: " + Registers);
+        Debug.Log("Memory: " + Memory);
+        Debug.Log("Instructions Executed: " + InstructionsExecuted);
+        Debug.Log("Cycles Taken: " + _cycle);
+        Debug.Log("Instructions Per Cycle (IPC): " + (InstructionsExecuted/_cycle).ToString("N2"));
     }
 }

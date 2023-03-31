@@ -99,5 +99,7 @@ public class ExecutionUnit
                 _processor.Halt();
                 break;
         }
+
+        _processor.InstructionsExecuted++;
     }
 }
