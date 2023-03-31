@@ -21,7 +21,7 @@ public class Processor
 
     public Mode Mode;
 
-    public Processor(int pipelines)
+    public Processor(int pipelines, int registers, int memory)
     {
         Pipelines = pipelines;
         
@@ -35,11 +35,26 @@ public class Processor
         
         FetchDecodeBuffer = new List<Tuple<Opcode, int, int>>();
         DecodeExecuteBuffer = new List<Tuple<Opcode, int, int>>();
+
+        Registers = new int[registers];
+        Memory = new int[memory];
+
+        ProgramCounter = 0;
+        _cycle = 0;
+
+        this.Mode = Mode.Release;
     }
 
     private void Tick()
     {
         var fetchedInstructions = _fetchUnit.Fetch();
-        var decodedInstructions =
+        var decodedInstructions = _decodeUnit.Decode();
+        foreach (var eUnit in _executionUnits)
+        {
+            eUnit.Execute();
+        }
+        FetchDecodeBuffer.AddRange(fetchedInstructions);
+        DecodeExecuteBuffer.AddRange(decodedInstructions);
+        _cycle++;
     }
 }
