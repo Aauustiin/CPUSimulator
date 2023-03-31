@@ -96,10 +96,10 @@ public class Processor
         _finished = true;
 
         Debug.Log("Finished!");
-        Debug.Log("Registers: " + Registers);
-        Debug.Log("Memory: " + Memory);
+        Debug.Log("Registers: " + string.Join(',', Registers));
+        Debug.Log("Memory: " + string.Join(',', Memory));
         Debug.Log("Instructions Executed: " + InstructionsExecuted);
         Debug.Log("Cycles Taken: " + _cycle);
-        Debug.Log("Instructions Per Cycle (IPC): " + (InstructionsExecuted/_cycle).ToString("N2"));
+        Debug.Log("Instructions Per Cycle (IPC): " + ((float)InstructionsExecuted/_cycle).ToString("N2"));
     }
 }
