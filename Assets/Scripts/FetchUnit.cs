@@ -12,7 +12,7 @@ public class FetchUnit
 
     public List<Tuple<Opcode, int, int>> Fetch()
     {
-        List<Tuple<Opcode, int, int>> instructions = new List<Tuple<Opcode, int, int>>();
+        var instructions = new List<Tuple<Opcode, int, int>>();
         for (int i = 0; i < _processor.Pipelines; i++)
         {
             if (_processor.Instructions.Length > _processor.ProgramCounter)

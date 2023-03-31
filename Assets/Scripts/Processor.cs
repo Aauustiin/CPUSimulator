@@ -3,25 +3,25 @@ using System.Collections.Generic;
 
 public class Processor
 {
-    public int Pipelines;
+    public readonly int Pipelines;
 
-    private FetchUnit _fetchUnit;
-    private DecodeUnit _decodeUnit;
-    private List<ExecutionUnit> _executionUnits;
+    private readonly FetchUnit _fetchUnit;
+    private readonly DecodeUnit _decodeUnit;
+    private readonly List<ExecutionUnit> _executionUnits;
 
-    public List<Tuple<Opcode, int, int>> FetchDecodeBuffer;
-    public List<Tuple<Opcode, int, int>> DecodeExecuteBuffer;
+    public readonly List<Tuple<Opcode, int, int>> FetchDecodeBuffer;
+    public readonly List<Tuple<Opcode, int, int>> DecodeExecuteBuffer;
 
-    public int[] Registers;
-    public int[] Memory;
-    public Tuple<Opcode, int, int>[] Instructions;
+    public readonly int[] Registers;
+    public readonly int[] Memory;
+    public readonly Tuple<Opcode, int, int>[] Instructions;
 
     public int ProgramCounter;
     private int _cycle;
 
     public Mode Mode;
 
-    public Processor(int pipelines, int registers, int memory)
+    public Processor(int pipelines, int registers, int memory, Tuple<Opcode, int, int>[] instructions)
     {
         Pipelines = pipelines;
         
@@ -39,10 +39,12 @@ public class Processor
         Registers = new int[registers];
         Memory = new int[memory];
 
+        Instructions = instructions;
+        
         ProgramCounter = 0;
         _cycle = 0;
 
-        this.Mode = Mode.Release;
+        this.Mode = Mode.RELEASE;
     }
 
     private void Tick()

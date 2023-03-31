@@ -9,12 +9,12 @@ public class ExecutionUnit
 
     public void Execute()
     {
-        if (_processor.DecodeExecuteBuffer.Count > 0)
-        {
-            var instruction = _processor.DecodeExecuteBuffer[0];
-            _processor.DecodeExecuteBuffer.RemoveAt(0);
+        if (_processor.DecodeExecuteBuffer.Count <= 0) return;
+        
+        var instruction = _processor.DecodeExecuteBuffer[0];
+        _processor.DecodeExecuteBuffer.RemoveAt(0);
             
-            switch (instruction.Item1)
+        switch (instruction.Item1)
         {
             case Opcode.ADD:
                 _processor.Registers[instruction.Item2] += _processor.Registers[instruction.Item3];
@@ -90,12 +90,11 @@ public class ExecutionUnit
                 _processor.ProgramCounter += instruction.Item2 - 1;
                 break;
             case Opcode.BREAK:
-                if (_processor.Mode == Mode.DebugC)
+                if (_processor.Mode == Mode.DEBUGC)
                 {
-                    _processor.Mode = Mode.DebugS;
+                    _processor.Mode = Mode.DEBUGS;
                 }
                 break;
-        }
         }
     }
 }

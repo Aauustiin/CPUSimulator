@@ -12,7 +12,7 @@ public class DecodeUnit
 
     public List<Tuple<Opcode, int, int>> Decode()
     {
-        List<Tuple<Opcode, int, int>> decodedInstructions = new List<Tuple<Opcode, int, int>>();
+        var decodedInstructions = new List<Tuple<Opcode, int, int>>();
         for (int i = 0; i < _processor.Pipelines; i++)
         {
             if (_processor.FetchDecodeBuffer.Count > 0)

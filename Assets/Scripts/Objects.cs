@@ -1,7 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-
 public enum Opcode {
     ADD,
     ADDI,
@@ -25,7 +21,7 @@ public enum Opcode {
 
 public enum Mode
 {
-    Release,
-    DebugC,
-    DebugS,
+    RELEASE,
+    DEBUGC,
+    DEBUGS,
 }
