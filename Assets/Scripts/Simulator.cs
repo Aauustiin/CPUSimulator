@@ -7,7 +7,7 @@ public class Simulator : MonoBehaviour
     [SerializeField] private TMP_InputField input;
     
     private const string DefaultFilePath = "Assets\\Scripts\\Assembly\\Test\\Test.txt";
-    private const Mode DefaultMode = Mode.RELEASE;
+    private const Mode DefaultMode = Mode.DEBUGC;
 
     private Processor _processor;
 
