@@ -25,7 +25,8 @@ public class Processor
 
     public Mode Mode;
     
-    public static event Action Tick;
+    public event Action Tick;
+    public event Action Flush;
 
     public Processor(int pipelines, int registers)
     {
@@ -42,11 +43,13 @@ public class Processor
         Registers = new int[registers];
 
         Tick += OnTick;
+        Flush += OnFlush;
     }
 
     ~Processor()
     {
         Tick -= OnTick;
+        Flush -= OnFlush;
     }
     
     public void Process(int[] memory, Tuple<Opcode, int, int>[] instructions, Mode mode)
@@ -72,22 +75,34 @@ public class Processor
     {
         if (_finished) return;
         
-        var fetchedInstructions = _fetchUnit.Fetch();
-        var decodedInstructions = _decodeUnit.Decode();
+        _fetchUnit.Fetch();
+        _decodeUnit.Decode();
+        var executedInstructions = new List<Tuple<Opcode, int, int>>();
         foreach (var eUnit in _executionUnits)
         {
-            eUnit.Execute();
+            executedInstructions.Add(eUnit.Execute());
         }
-        FetchDecodeBuffer.AddRange(fetchedInstructions);
-        DecodeExecuteBuffer.AddRange(decodedInstructions);
+        FetchDecodeBuffer.AddRange(_fetchUnit.OutputBuffer);
+        _fetchUnit.OutputBuffer.Clear();
+        DecodeExecuteBuffer.AddRange(_decodeUnit.OutputBuffer);
+        _decodeUnit.OutputBuffer.Clear();
         _cycle++;
 
         if (Mode == Mode.DEBUGS)
         {
             Debug.Log("Registers: " + string.Join(',', Registers));
             Debug.Log("Memory: " + string.Join(',', Memory));
+            Debug.Log("Fetch-Decode Buffer: " + string.Join(',', FetchDecodeBuffer));
+            Debug.Log("Decode-Execute Buffer: " + string.Join(',', DecodeExecuteBuffer));
+            Debug.Log("Executed Instructions: " + string.Join(',', executedInstructions));
         }
         else TriggerTick();
+    }
+
+    private void OnFlush()
+    {
+        FetchDecodeBuffer.Clear();
+        DecodeExecuteBuffer.Clear();
     }
 
     public void Halt()
@@ -105,5 +120,10 @@ public class Processor
     public void TriggerTick()
     {
         Tick?.Invoke();
+    }
+
+    public void TriggerFlush()
+    {
+        Flush?.Invoke();
     }
 }

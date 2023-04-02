@@ -35,6 +35,6 @@ public class Simulator : MonoBehaviour
 
         _processor = new Processor(1, 16);
         var program = Parsing.LoadProgram(filePath);
-        _processor.Process(new int[128], program, mode);
+        _processor.Process(new int[3] {2, 1, 4}, program, mode);
     }
 }

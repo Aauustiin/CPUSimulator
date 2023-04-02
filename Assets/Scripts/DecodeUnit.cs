@@ -4,24 +4,35 @@ using System.Collections.Generic;
 public class DecodeUnit
 {
     private readonly Processor _processor;
+    public readonly List<Tuple<Opcode, int, int>> OutputBuffer;
 
     public DecodeUnit(Processor processor)
     {
         _processor = processor;
+        OutputBuffer = new List<Tuple<Opcode, int, int>>();
+        _processor.Flush += OnFlush;
     }
 
-    public List<Tuple<Opcode, int, int>> Decode()
+    ~DecodeUnit()
     {
-        var decodedInstructions = new List<Tuple<Opcode, int, int>>();
+        _processor.Flush -= OnFlush;
+    }
+
+    public void Decode()
+    {
         for (int i = 0; i < _processor.Pipelines; i++)
         {
             if (_processor.FetchDecodeBuffer.Count > 0)
             {
                 var instruction = _processor.FetchDecodeBuffer[0];
-                decodedInstructions.Add(instruction);
+                OutputBuffer.Add(instruction);
                 _processor.FetchDecodeBuffer.RemoveAt(0);
             }
         }
-        return decodedInstructions;
+    }
+
+    private void OnFlush()
+    {
+        OutputBuffer.Clear();
     }
 }

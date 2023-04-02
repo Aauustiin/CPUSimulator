@@ -1,3 +1,6 @@
+using System;
+using UnityEngine;
+
 public class ExecutionUnit
 {
     private readonly Processor _processor;
@@ -7,9 +10,9 @@ public class ExecutionUnit
         _processor = processor;
     }
 
-    public void Execute()
+    public Tuple<Opcode, int, int> Execute()
     {
-        if (_processor.DecodeExecuteBuffer.Count <= 0) return;
+        if (_processor.DecodeExecuteBuffer.Count <= 0) return null;
         
         var instruction = _processor.DecodeExecuteBuffer[0];
         _processor.DecodeExecuteBuffer.RemoveAt(0);
@@ -78,16 +81,19 @@ public class ExecutionUnit
                 if (_processor.Registers[instruction.Item2] == 0)
                 {
                     _processor.ProgramCounter += instruction.Item3 - 1;
+                    _processor.TriggerFlush();
                 }
                 break;
             case Opcode.BRANCHG:
                 if (_processor.Registers[instruction.Item2] == 1)
                 {
                     _processor.ProgramCounter += instruction.Item3 - 1;
+                    _processor.TriggerFlush();
                 }
                 break;
             case Opcode.JUMP:
                 _processor.ProgramCounter += instruction.Item2 - 1;
+                _processor.TriggerFlush();
                 break;
             case Opcode.BREAK:
                 if (_processor.Mode == Mode.DEBUGC)
@@ -101,5 +107,6 @@ public class ExecutionUnit
         }
 
         _processor.InstructionsExecuted++;
+        return instruction;
     }
 }
