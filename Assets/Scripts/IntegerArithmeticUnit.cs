@@ -1,21 +1,36 @@
 using System;
+using System.Linq;
 using UnityEngine;
 
-public class ExecutionUnit
+public class IntegerArithmeticUnit : IExecutionUnit
 {
     private readonly Processor _processor;
-
-    public ExecutionUnit(Processor processor)
+    
+    private readonly Opcode[] _compatibleOpcodes =
+    {
+        Opcode.ADD,
+        Opcode.ADDI,
+        Opcode.SUB,
+        Opcode.SUBI,
+        Opcode.MUL,
+        Opcode.DIV,
+        Opcode.MOD,
+        Opcode.CMP,
+        Opcode.CMPI
+    };
+    
+    public IntegerArithmeticUnit(Processor processor)
     {
         _processor = processor;
     }
-
+    
     public Tuple<Opcode, int, int> Execute()
     {
-        if (_processor.DecodeExecuteBuffer.Count <= 0) return null;
-        
-        var instruction = _processor.DecodeExecuteBuffer[0];
-        _processor.DecodeExecuteBuffer.RemoveAt(0);
+        // Try and find an instruction that I can execute
+        var instruction = _processor.DecodeExecuteBuffer.Find(
+            ins => _compatibleOpcodes.Contains(ins.Item1)
+        );
+        if (instruction == null) return null;
             
         switch (instruction.Item1)
         {
@@ -40,21 +55,6 @@ public class ExecutionUnit
             case Opcode.MOD:
                 _processor.Registers[instruction.Item2] %= _processor.Registers[instruction.Item3];
                 break;
-            case Opcode.COPY:
-                _processor.Registers[instruction.Item2] = _processor.Registers[instruction.Item3];
-                break;
-            case Opcode.COPYI:
-                _processor.Registers[instruction.Item2] = instruction.Item3;
-                break;
-            case Opcode.LOAD:
-                _processor.Registers[instruction.Item2] = _processor.Memory[_processor.Registers[instruction.Item3]];
-                break;
-            case Opcode.LOADI:
-                _processor.Registers[instruction.Item2] = _processor.Memory[instruction.Item3];
-                break;
-            case Opcode.STORE:
-                _processor.Memory[_processor.Registers[instruction.Item2]] = _processor.Registers[instruction.Item3];
-                break;
             case Opcode.CMP:
                 if (_processor.Registers[instruction.Item2] == _processor.Registers[instruction.Item3])
                 {
@@ -77,36 +77,13 @@ public class ExecutionUnit
                 }
                 else _processor.Registers[instruction.Item2] = 1;
                 break;
-            case Opcode.BRANCHE:
-                if (_processor.Registers[instruction.Item2] == 0)
-                {
-                    _processor.ProgramCounter += instruction.Item3 - 1;
-                    _processor.TriggerFlush();
-                }
-                break;
-            case Opcode.BRANCHG:
-                if (_processor.Registers[instruction.Item2] == 1)
-                {
-                    _processor.ProgramCounter += instruction.Item3 - 1;
-                    _processor.TriggerFlush();
-                }
-                break;
-            case Opcode.JUMP:
-                _processor.ProgramCounter += instruction.Item2 - 1;
-                _processor.TriggerFlush();
-                break;
-            case Opcode.BREAK:
-                if (_processor.Mode == Mode.DEBUGC)
-                {
-                    _processor.Mode = Mode.DEBUGS;
-                }
-                break;
-            case Opcode.HALT:
-                _processor.Halt();
-                break;
+            default:
+                Debug.Log("LoadStoreUnit tried to execute incompatible instruction.");
+                return null;
         }
 
         _processor.InstructionsExecuted++;
+        _processor.DecodeExecuteBuffer.Remove(instruction);
         return instruction;
     }
 }

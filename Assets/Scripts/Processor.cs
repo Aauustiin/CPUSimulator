@@ -8,7 +8,7 @@ public class Processor
 
     private readonly FetchUnit _fetchUnit;
     private readonly DecodeUnit _decodeUnit;
-    private readonly List<ExecutionUnit> _executionUnits;
+    private readonly List<IExecutionUnit> _executionUnits;
 
     // Could experiment with making these buffers a fixed size
     public List<Tuple<Opcode, int, int>> FetchDecodeBuffer;
@@ -34,11 +34,12 @@ public class Processor
         
         _fetchUnit = new FetchUnit(this);
         _decodeUnit = new DecodeUnit(this);
-        _executionUnits = new List<ExecutionUnit>();
-        for (int i = 0; i < Pipelines; i++)
+        _executionUnits = new List<IExecutionUnit>()
         {
-            _executionUnits.Add(new ExecutionUnit(this));
-        }
+            new BranchUnit(this),
+            new IntegerArithmeticUnit(this),
+            new LoadStoreUnit(this)
+        };
 
         Registers = new int[registers];
 
