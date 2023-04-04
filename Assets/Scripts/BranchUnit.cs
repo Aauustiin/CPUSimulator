@@ -32,28 +32,28 @@ public class BranchUnit : IExecutionUnit
         switch (instruction.Opcode)
         {
             case Opcode.BRANCHE:
-                if (instruction.Operands[0] == instruction.Operands[1])
+                if (_processor.Registers[instruction.Operands[0]] == _processor.Registers[instruction.Operands[1]])
                 {
-                    _processor.ProgramCounter += instruction.Operands[2];
+                    _processor.ProgramCounter = instruction.Operands[2];
                     _processor.TriggerFlush();
                 }
                 break;
             case Opcode.BRANCHG:
-                if (instruction.Operands[0] > instruction.Operands[1])
+                if (_processor.Registers[instruction.Operands[0]] > _processor.Registers[instruction.Operands[1]])
                 {
-                    _processor.ProgramCounter += instruction.Operands[2];
+                    _processor.ProgramCounter = instruction.Operands[2];
                     _processor.TriggerFlush();
                 }
                 break;
             case Opcode.BRANCHGE:
-                if (instruction.Operands[0] >= instruction.Operands[1])
+                if (_processor.Registers[instruction.Operands[0]] >= _processor.Registers[instruction.Operands[1]])
                 {
-                    _processor.ProgramCounter += instruction.Operands[2];
+                    _processor.ProgramCounter = instruction.Operands[2];
                     _processor.TriggerFlush();
                 }
                 break;
             case Opcode.JUMP:
-                _processor.ProgramCounter += instruction.Operands[0];
+                _processor.ProgramCounter = instruction.Operands[0];
                 _processor.TriggerFlush();
                 break;
             case Opcode.BREAK:

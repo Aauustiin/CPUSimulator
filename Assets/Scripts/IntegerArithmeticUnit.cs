@@ -1,6 +1,4 @@
-using System;
 using System.Linq;
-using UnityEngine;
 
 public class IntegerArithmeticUnit : IExecutionUnit
 {
@@ -28,8 +26,7 @@ public class IntegerArithmeticUnit : IExecutionUnit
         var instruction = _processor.DecodeExecuteBuffer.Find(
             ins => _compatibleOpcodes.Contains(ins.Opcode)
         );
-        Debug.Log(instruction.Opcode);
-        bool validInstruction = true;
+        var validInstruction = true;
             
         switch (instruction.Opcode)
         {
