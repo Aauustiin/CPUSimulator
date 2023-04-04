@@ -11,12 +11,12 @@ public class Processor
     private readonly List<IExecutionUnit> _executionUnits;
 
     // Could experiment with making these buffers a fixed size
-    public List<Tuple<Opcode, int, int>> FetchDecodeBuffer;
-    public List<Tuple<Opcode, int, int>> DecodeExecuteBuffer;
+    public List<Instruction> FetchDecodeBuffer;
+    public List<Instruction> DecodeExecuteBuffer;
 
     public readonly int[] Registers;
     public int[] Memory;
-    public Tuple<Opcode, int, int>[] Instructions;
+    public Instruction[] Instructions;
 
     public int ProgramCounter;
     private int _cycle;
@@ -53,10 +53,10 @@ public class Processor
         Flush -= OnFlush;
     }
     
-    public void Process(int[] memory, Tuple<Opcode, int, int>[] instructions, Mode mode)
+    public void Process(int[] memory, Instruction[] instructions, Mode mode)
     {
-        FetchDecodeBuffer = new List<Tuple<Opcode, int, int>>();
-        DecodeExecuteBuffer = new List<Tuple<Opcode, int, int>>();
+        FetchDecodeBuffer = new List<Instruction>();
+        DecodeExecuteBuffer = new List<Instruction>();
         
         Array.Clear(Registers, 0, Registers.Length);
         Memory = memory;
@@ -68,20 +68,19 @@ public class Processor
         _finished = false;
 
         Mode = mode;
-        
+
         TriggerTick();
     }
 
     private void OnTick()
     {
         if (_finished) return;
-        
+
         _fetchUnit.Fetch();
         _decodeUnit.Decode();
-        var executedInstructions = new List<Tuple<Opcode, int, int>>();
         foreach (var eUnit in _executionUnits)
         {
-            executedInstructions.Add(eUnit.Execute());
+            eUnit.Execute();
         }
         FetchDecodeBuffer.AddRange(_fetchUnit.OutputBuffer);
         _fetchUnit.OutputBuffer.Clear();
@@ -95,7 +94,6 @@ public class Processor
             Debug.Log("Memory: " + string.Join(',', Memory));
             Debug.Log("Fetch-Decode Buffer: " + string.Join(',', FetchDecodeBuffer));
             Debug.Log("Decode-Execute Buffer: " + string.Join(',', DecodeExecuteBuffer));
-            Debug.Log("Executed Instructions: " + string.Join(',', executedInstructions));
         }
         else TriggerTick();
     }

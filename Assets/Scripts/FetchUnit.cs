@@ -4,12 +4,12 @@ using System.Collections.Generic;
 public class FetchUnit
 {
     private readonly Processor _processor;
-    public readonly List<Tuple<Opcode, int, int>> OutputBuffer;
+    public readonly List<Instruction> OutputBuffer;
     
     public FetchUnit(Processor processor)
     {
         _processor = processor;
-        OutputBuffer = new List<Tuple<Opcode, int, int>>();
+        OutputBuffer = new List<Instruction>();
         _processor.Flush += OnFlush;
     }
 

@@ -1,11 +1,8 @@
 ﻿LOADI 0 0 - Number of cells
 COPYI 1 0 - Running total
 COPYI 2 1 - Cell address
+LABEL ALPHA
 LOAD 3 2 - Cell contents
-ADD 1 3 - Add cell to running total
-ADDI 2 1 - Increment cell address
-COPY 4 2
-SUBI 4 1
-CMP 4 0 - Is cell address greater than or equal to the number of cells?
-BRANCHG 4 -7 - If not, branch back
-HALT 0 0
+ADD 1 1 3 - Add cell to running total
+ADDI 2 2 1 - Increment cell address
+BRANCHGE 0 2 ALPHA

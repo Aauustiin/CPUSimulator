@@ -10,6 +10,7 @@ public class BranchUnit : IExecutionUnit
     {
         Opcode.BRANCHE,
         Opcode.BRANCHG,
+        Opcode.BRANCHGE,
         Opcode.JUMP,
         Opcode.BREAK,
         Opcode.HALT,
@@ -20,32 +21,39 @@ public class BranchUnit : IExecutionUnit
         _processor = processor;
     }
     
-    public Tuple<Opcode, int, int> Execute()
+    public void Execute()
     {
         // Try and find an instruction that I can execute
         var instruction = _processor.DecodeExecuteBuffer.Find(
-            ins => _compatibleOpcodes.Contains(ins.Item1)
+            ins => _compatibleOpcodes.Contains(ins.Opcode)
         );
-        if (instruction == null) return null;
-            
-        switch (instruction.Item1)
+        bool validInstruction = true;
+
+        switch (instruction.Opcode)
         {
             case Opcode.BRANCHE:
-                if (_processor.Registers[instruction.Item2] == 0)
+                if (instruction.Operands[0] == instruction.Operands[1])
                 {
-                    _processor.ProgramCounter += instruction.Item3 - 1;
+                    _processor.ProgramCounter += instruction.Operands[2];
                     _processor.TriggerFlush();
                 }
                 break;
             case Opcode.BRANCHG:
-                if (_processor.Registers[instruction.Item2] == 1)
+                if (instruction.Operands[0] > instruction.Operands[1])
                 {
-                    _processor.ProgramCounter += instruction.Item3 - 1;
+                    _processor.ProgramCounter += instruction.Operands[2];
+                    _processor.TriggerFlush();
+                }
+                break;
+            case Opcode.BRANCHGE:
+                if (instruction.Operands[0] >= instruction.Operands[1])
+                {
+                    _processor.ProgramCounter += instruction.Operands[2];
                     _processor.TriggerFlush();
                 }
                 break;
             case Opcode.JUMP:
-                _processor.ProgramCounter += instruction.Item2 - 1;
+                _processor.ProgramCounter += instruction.Operands[0];
                 _processor.TriggerFlush();
                 break;
             case Opcode.BREAK:
@@ -58,12 +66,14 @@ public class BranchUnit : IExecutionUnit
                 _processor.Halt();
                 break;
             default:
-                Debug.Log("LoadStoreUnit tried to execute incompatible instruction.");
-                return null;
+                validInstruction = false;
+                break;
         }
 
-        _processor.InstructionsExecuted++;
-        _processor.DecodeExecuteBuffer.Remove(instruction);
-        return instruction;
+        if (validInstruction)
+        {
+            _processor.InstructionsExecuted++;
+            _processor.DecodeExecuteBuffer.Remove(instruction);
+        }
     }
 }

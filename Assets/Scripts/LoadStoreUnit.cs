@@ -20,38 +20,40 @@ public class LoadStoreUnit : IExecutionUnit
         _processor = processor;
     }
     
-    public Tuple<Opcode, int, int> Execute()
+    public void Execute()
     {
         // Try and find an instruction that I can execute
         var instruction = _processor.DecodeExecuteBuffer.Find(
-            ins => _compatibleOpcodes.Contains(ins.Item1)
-            );
-        if (instruction == null) return null;
+            ins => _compatibleOpcodes.Contains(ins.Opcode)
+        );
+        bool validInstruction = true;
 
-        switch (instruction.Item1)
+        switch (instruction.Opcode)
         {
             case Opcode.COPY:
-                _processor.Registers[instruction.Item2] = _processor.Registers[instruction.Item3];
+                _processor.Registers[instruction.Operands[0]] = _processor.Registers[instruction.Operands[1]];
                 break;
             case Opcode.COPYI:
-                _processor.Registers[instruction.Item2] = instruction.Item3;
+                _processor.Registers[instruction.Operands[0]] = instruction.Operands[1];
                 break;
             case Opcode.LOAD:
-                _processor.Registers[instruction.Item2] = _processor.Memory[_processor.Registers[instruction.Item3]];
+                _processor.Registers[instruction.Operands[0]] = _processor.Memory[_processor.Registers[instruction.Operands[1]]];
                 break;
             case Opcode.LOADI:
-                _processor.Registers[instruction.Item2] = _processor.Memory[instruction.Item3];
+                _processor.Registers[instruction.Operands[0]] = _processor.Memory[instruction.Operands[1]];
                 break;
             case Opcode.STORE:
-                _processor.Memory[_processor.Registers[instruction.Item2]] = _processor.Registers[instruction.Item3];
+                _processor.Memory[_processor.Registers[instruction.Operands[0]]] = _processor.Registers[instruction.Operands[1]];
                 break;
             default:
-                Debug.Log("LoadStoreUnit tried to execute incompatible instruction.");
-                return null;
+                validInstruction = false;
+                break;
         }
 
-        _processor.InstructionsExecuted++;
-        _processor.DecodeExecuteBuffer.Remove(instruction);
-        return instruction;
+        if (validInstruction)
+        {
+            _processor.InstructionsExecuted++;
+            _processor.DecodeExecuteBuffer.Remove(instruction);
+        }
     }
 }

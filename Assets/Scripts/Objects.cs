@@ -1,4 +1,7 @@
+using System.Collections.Generic;
+
 public enum Opcode {
+    NULL,
     ADD,
     ADDI,
     SUB,
@@ -11,18 +14,34 @@ public enum Opcode {
     LOAD,
     LOADI,
     STORE,
-    CMP,
-    CMPI,
     BRANCHE,
     BRANCHG,
+    BRANCHGE,
     JUMP,
     BREAK,
-    HALT,
+    HALT
 }
 
 public enum Mode
 {
     RELEASE,
     DEBUGC,
-    DEBUGS,
+    DEBUGS
+}
+
+public readonly struct Instruction
+{
+    public readonly Opcode Opcode;
+    public readonly List<int> Operands;
+
+    public Instruction(Opcode opcode, List<int> operands)
+    {
+        Opcode = opcode;
+        Operands = operands;
+    }
+
+    public override string ToString()
+    {
+        return Opcode + " " + string.Join(' ', Operands);
+    }
 }
