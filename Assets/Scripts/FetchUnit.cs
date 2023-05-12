@@ -1,37 +1,37 @@
-using System;
-using System.Collections.Generic;
-
 public class FetchUnit
 {
     private readonly Processor _processor;
-    public readonly List<Instruction> OutputBuffer;
-    
+    private Instruction? _output;
+
     public FetchUnit(Processor processor)
     {
         _processor = processor;
-        OutputBuffer = new List<Instruction>();
-        _processor.Flush += OnFlush;
-    }
-
-    ~FetchUnit()
-    {
-        _processor.Flush -= OnFlush;
+        _output = null;
     }
 
     public void Fetch()
     {
-        for (int i = 0; i < _processor.Pipelines; i++)
+        if (IsFree() && (_processor.Instructions.Length > _processor.ProgramCounter))
         {
-            if (_processor.Instructions.Length > _processor.ProgramCounter)
-            {
-                OutputBuffer.Add(_processor.Instructions[_processor.ProgramCounter]);
-                _processor.ProgramCounter++;
-            }
+            _output = _processor.Instructions[_processor.ProgramCounter];
+            _processor.ProgramCounter++;
         }
     }
 
-    private void OnFlush()
+    public Instruction? Pop()
     {
-        OutputBuffer.Clear();
+        var result = _output;
+        _output = null;
+        return result;
+    }
+
+    private bool IsFree()
+    {
+        return _output == null;
+    }
+    
+    public bool HasOutput()
+    {
+        return _output != null;
     }
 }

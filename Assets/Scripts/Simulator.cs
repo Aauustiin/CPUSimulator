@@ -7,7 +7,7 @@ public class Simulator : MonoBehaviour
     [SerializeField] private TMP_InputField input;
     
     private const string DefaultFilePath = "Assets\\Scripts\\Assembly\\Test\\Test.txt";
-    private const Mode DefaultMode = Mode.DEBUGC;
+    private const ProcessorMode DefaultMode = ProcessorMode.DEBUGC;
 
     private Processor _processor;
 
@@ -28,13 +28,13 @@ public class Simulator : MonoBehaviour
         if (a != -1) filePath = args[a + 1];
         else filePath = DefaultFilePath;
 
-        Mode mode;
+        ProcessorMode processorMode;
         var b = Array.IndexOf(args, "-mode");
-        if (b != -1) Enum.TryParse(args[b + 1], out mode);
-        else mode = DefaultMode;
+        if (b != -1) Enum.TryParse(args[b + 1], out processorMode);
+        else processorMode = DefaultMode;
 
         _processor = new Processor(1, 16);
         var program = Parsing.LoadProgram(filePath);
-        _processor.Process(new int[3] {2, 1, 4}, program, mode);
+        _processor.Process(new int[3] {2, 1, 4}, program, processorMode);
     }
 }

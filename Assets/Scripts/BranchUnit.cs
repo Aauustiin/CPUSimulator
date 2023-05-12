@@ -57,9 +57,9 @@ public class BranchUnit : IExecutionUnit
                 _processor.TriggerFlush();
                 break;
             case Opcode.BREAK:
-                if (_processor.Mode == Mode.DEBUGC)
+                if (_processor.ProcessorMode == ProcessorMode.DEBUGC)
                 {
-                    _processor.Mode = Mode.DEBUGS;
+                    _processor.ProcessorMode = ProcessorMode.DEBUGS;
                 }
                 break;
             case Opcode.HALT:

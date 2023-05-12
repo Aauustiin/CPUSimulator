@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 
 public enum Opcode {
-    NULL,
     ADD,
     ADDI,
     SUB,
@@ -22,16 +21,9 @@ public enum Opcode {
     HALT
 }
 
-public enum Mode
+public struct Instruction
 {
-    RELEASE,
-    DEBUGC,
-    DEBUGS
-}
-
-public readonly struct Instruction
-{
-    public readonly Opcode Opcode;
+    public Opcode Opcode;
     public readonly List<int> Operands;
 
     public Instruction(Opcode opcode, List<int> operands)
@@ -44,4 +36,11 @@ public readonly struct Instruction
     {
         return Opcode + " " + string.Join(' ', Operands);
     }
+}
+
+public struct Result
+{
+    public int ReservationStationId;
+    public int DestinationRegister;
+    public int Value;
 }

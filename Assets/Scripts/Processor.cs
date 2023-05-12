@@ -1,20 +1,16 @@
-using System;
-using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class Processor
 {
-    public readonly int Pipelines;
-
-    private readonly FetchUnit _fetchUnit;
-    private readonly DecodeUnit _decodeUnit;
-    private readonly List<IExecutionUnit> _executionUnits;
-
-    // Could experiment with making these buffers a fixed size
-    public List<Instruction> FetchDecodeBuffer;
-    public List<Instruction> DecodeExecuteBuffer;
+    private FetchUnit[] _fetchUnits;
+    private DecodeUnit[] _decodeUnits;
+    public ReservationStation[] ReservationStations;
 
     public readonly int[] Registers;
+    public readonly int?[] Scoreboard;
+    public int[] RegisterAllocationTable;
+    public ReorderBuffer ReorderBuffer;
     public int[] Memory;
     public Instruction[] Instructions;
 
@@ -23,85 +19,50 @@ public class Processor
     public int InstructionsExecuted;
     private bool _finished;
 
-    public Mode Mode;
-    
-    public event Action Tick;
-    public event Action Flush;
+    public ProcessorMode ProcessorMode;
 
-    public Processor(int pipelines, int registers)
+    public Processor() {}
+
+    private void Process()
     {
-        Pipelines = pipelines;
-        
-        _fetchUnit = new FetchUnit(this);
-        _decodeUnit = new DecodeUnit(this);
-        _executionUnits = new List<IExecutionUnit>()
+        while (!_finished)
         {
-            new BranchUnit(this),
-            new IntegerArithmeticUnit(this),
-            new LoadStoreUnit(this)
-        };
+            // Step 1: Process the current data.
 
-        Registers = new int[registers];
+            foreach (var fetchUnit in _fetchUnits)
+            {
+                fetchUnit.Fetch();
+            }
 
-        Tick += OnTick;
-        Flush += OnFlush;
-    }
+            foreach (var decodeUnit in _decodeUnits)
+            {
+                decodeUnit.Decode();
+            }
 
-    ~Processor()
-    {
-        Tick -= OnTick;
-        Flush -= OnFlush;
-    }
-    
-    public void Process(int[] memory, Instruction[] instructions, Mode mode)
-    {
-        FetchDecodeBuffer = new List<Instruction>();
-        DecodeExecuteBuffer = new List<Instruction>();
-        
-        Array.Clear(Registers, 0, Registers.Length);
-        Memory = memory;
-        Instructions = instructions;
-        
-        ProgramCounter = 0;
-        _cycle = 0;
-        InstructionsExecuted = 0;
-        _finished = false;
+            // Step 2: Assign new data.
 
-        Mode = mode;
+            // TODO: Commit results from the reorder buffer to the physical register files?
 
-        TriggerTick();
-    }
+            // TODO: Move results from execution units to the reorder buffer? 
 
-    private void OnTick()
-    {
-        if (_finished) return;
+            // TODO: Issue from reservation stations to free execution units
 
-        _fetchUnit.Fetch();
-        _decodeUnit.Decode();
-        foreach (var eUnit in _executionUnits)
-        {
-            eUnit.Execute();
+            // Assign decoded instructions to free reservation stations.
+            var fullDecodeUnits = _decodeUnits.Where(decodeUnit => decodeUnit.HasOutput()).ToArray();
+            var freeReservationStations = ReservationStations.Where(reservationStation =>
+                reservationStation.GetState() == ReservationStationState.FREE).ToArray();
+            for (var i = 0; (i < freeReservationStations.Count()) & (i < fullDecodeUnits.Count()); i++)
+            {
+                freeReservationStations[i].SetReservationStationData(fullDecodeUnits[i].Pop().Value);
+            }
+
+            // Assign fetched instructions to free decode units.
+            var fullFetchUnits = _fetchUnits.Where(fetchUnit => fetchUnit.HasOutput());
+            var emptyDecodeUnits = _decodeUnits.Where(decodeUnit => decodeUnit.IsFree());
+            fullFetchUnits.Zip(emptyDecodeUnits, (fetchUnit, decodeUnit) => decodeUnit.Input = fetchUnit.Pop());
+            
+            _cycle++;
         }
-        FetchDecodeBuffer.AddRange(_fetchUnit.OutputBuffer);
-        _fetchUnit.OutputBuffer.Clear();
-        DecodeExecuteBuffer.AddRange(_decodeUnit.OutputBuffer);
-        _decodeUnit.OutputBuffer.Clear();
-        _cycle++;
-
-        if (Mode == Mode.DEBUGS)
-        {
-            Debug.Log("Registers: " + string.Join(',', Registers));
-            Debug.Log("Memory: " + string.Join(',', Memory));
-            Debug.Log("Fetch-Decode Buffer: " + string.Join(',', FetchDecodeBuffer));
-            Debug.Log("Decode-Execute Buffer: " + string.Join(',', DecodeExecuteBuffer));
-        }
-        else TriggerTick();
-    }
-
-    private void OnFlush()
-    {
-        FetchDecodeBuffer.Clear();
-        DecodeExecuteBuffer.Clear();
     }
 
     public void Halt()
@@ -115,14 +76,11 @@ public class Processor
         Debug.Log("Cycles Taken: " + _cycle);
         Debug.Log("Instructions Per Cycle (IPC): " + ((float)InstructionsExecuted/_cycle).ToString("N2"));
     }
-    
-    public void TriggerTick()
-    {
-        Tick?.Invoke();
-    }
+}
 
-    public void TriggerFlush()
-    {
-        Flush?.Invoke();
-    }
+public enum ProcessorMode
+{
+    RELEASE,
+    DEBUGC,
+    DEBUGS
 }
