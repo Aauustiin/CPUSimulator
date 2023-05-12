@@ -5,12 +5,17 @@ public class Processor
 {
     private FetchUnit[] _fetchUnits;
     private DecodeUnit[] _decodeUnits;
+    private IntegerArithmeticUnit[] _integerArithmeticUnits;
+    private BranchUnit[] _branchUnits;
+    private LoadStoreUnit[] _loadStoreUnits;
+    
     public ReservationStation[] ReservationStations;
+    public ReorderBuffer ReorderBuffer;
 
     public readonly int[] Registers;
     public readonly int?[] Scoreboard;
     public int[] RegisterAllocationTable;
-    public ReorderBuffer ReorderBuffer;
+    
     public int[] Memory;
     public Instruction[] Instructions;
 
@@ -21,7 +26,50 @@ public class Processor
 
     public ProcessorMode ProcessorMode;
 
-    public Processor() {}
+    public Processor(ProcessorSpecification processorSpecification)
+    {
+        _fetchUnits = new FetchUnit[processorSpecification.NumFetchUnits];
+        for (var i = 0; i < processorSpecification.NumFetchUnits; i++)
+        {
+            _fetchUnits[i] = new FetchUnit(this);
+        }
+        
+        _decodeUnits = new DecodeUnit[processorSpecification.NumDecodeUnits];
+        for (var i = 0; i < processorSpecification.NumDecodeUnits; i++)
+        {
+            _decodeUnits[i] = new DecodeUnit(this);
+        }
+
+        _integerArithmeticUnits = new IntegerArithmeticUnit[processorSpecification.NumIntegerArithmeticUnits];
+        for (var i = 0; i < processorSpecification.NumIntegerArithmeticUnits; i++)
+        {
+            _integerArithmeticUnits[i] = new IntegerArithmeticUnit(this);
+        }
+
+        _branchUnits = new BranchUnit[processorSpecification.NumBranchUnits];
+        for (var i = 0; i < processorSpecification.NumBranchUnits; i++)
+        {
+            _branchUnits[i] = new BranchUnit(this);
+        }
+
+        _loadStoreUnits = new LoadStoreUnit[processorSpecification.NumLoadStoreUnits];
+        for (var i = 0; i < processorSpecification.NumLoadStoreUnits; i++)
+        {
+            _loadStoreUnits[i] = new LoadStoreUnit(this);
+        }
+
+        ReservationStations = new ReservationStation[processorSpecification.NumReservationStations];
+        for (var i = 0; i < processorSpecification.NumReservationStations; i++)
+        {
+            ReservationStations[i] = new ReservationStation(i, this);
+        }
+
+        ReorderBuffer = new ReorderBuffer(processorSpecification.ReorderBufferSize);
+
+        Registers = new int[processorSpecification.NumRegisters];
+        Scoreboard = new int?[processorSpecification.NumRegisters];
+        RegisterAllocationTable = new int[processorSpecification.NumRegisters];
+    }
 
     private void Process()
     {
@@ -75,6 +123,38 @@ public class Processor
         Debug.Log("Instructions Executed: " + InstructionsExecuted);
         Debug.Log("Cycles Taken: " + _cycle);
         Debug.Log("Instructions Per Cycle (IPC): " + ((float)InstructionsExecuted/_cycle).ToString("N2"));
+    }
+}
+
+public struct ProcessorSpecification
+{
+    public int NumFetchUnits;
+    public int NumDecodeUnits;
+    public int NumIntegerArithmeticUnits;
+    public int NumBranchUnits;
+    public int NumLoadStoreUnits;
+    public int NumReservationStations;
+    public int NumRegisters;
+    public int ReorderBufferSize;
+
+    public ProcessorSpecification(
+        int numFetchUnits, 
+        int numDecodeUnits, 
+        int numIntegerArithmeticUnits,
+        int numBranchUnits, 
+        int numLoadStoreUnits, 
+        int numReservationStations, 
+        int numRegisters, 
+        int reorderBufferSize)
+    {
+        NumFetchUnits = numFetchUnits;
+        NumDecodeUnits = numDecodeUnits;
+        NumIntegerArithmeticUnits = numIntegerArithmeticUnits;
+        NumBranchUnits = numBranchUnits;
+        NumLoadStoreUnits = numLoadStoreUnits;
+        NumReservationStations = numReservationStations;
+        NumRegisters = numRegisters;
+        ReorderBufferSize = reorderBufferSize;
     }
 }
 

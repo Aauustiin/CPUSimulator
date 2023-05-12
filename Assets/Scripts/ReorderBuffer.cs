@@ -2,17 +2,10 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ReorderBuffer : MonoBehaviour
+public class ReorderBuffer
 {
-    // Start is called before the first frame update
-    void Start()
+    public ReorderBuffer(int size)
     {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
+        // Implement constructor here.
     }
 }
