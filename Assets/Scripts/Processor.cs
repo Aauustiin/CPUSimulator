@@ -8,7 +8,8 @@ public class Processor
     private IntegerArithmeticUnit[] _integerArithmeticUnits;
     private BranchUnit[] _branchUnits;
     private LoadStoreUnit[] _loadStoreUnits;
-    
+
+    public BranchPredictionUnit BranchPredictionUnit;
     public ReservationStation[] ReservationStations;
     public ReorderBuffer ReorderBuffer;
 
@@ -69,6 +70,8 @@ public class Processor
         Registers = new int[processorSpecification.NumRegisters];
         Scoreboard = new int?[processorSpecification.NumRegisters];
         RegisterAllocationTable = new int[processorSpecification.NumRegisters];
+
+        BranchPredictionUnit = new BranchPredictionUnit();
     }
 
     private void Process(ProgramSpecification programSpecification)
@@ -103,8 +106,9 @@ public class Processor
             var fullDecodeUnits = _decodeUnits.Where(decodeUnit => decodeUnit.HasOutput()).ToArray();
             var freeReservationStations = ReservationStations.Where(reservationStation =>
                 reservationStation.GetState() == ReservationStationState.FREE).ToArray();
-            for (var i = 0; (i < freeReservationStations.Count()) & (i < fullDecodeUnits.Count()); i++)
+            for (var i = 0; (i < freeReservationStations.Count()) & (i < fullDecodeUnits.Count()) & (!ReorderBuffer.IsFull()); i++)
             {
+                ReorderBuffer.Issue(new ReorderBufferEntry());
                 freeReservationStations[i].SetReservationStationData(fullDecodeUnits[i].Pop().Value);
             }
 

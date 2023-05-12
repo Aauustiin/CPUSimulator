@@ -36,6 +36,7 @@ public class ReservationStation
         ReservationStationData.Value.Sources[sourceIndex] = null;
         ReservationStationData.Value.SourceValues[sourceIndex] = result.Value;
         UpdateState();
+        _processor.ReservationStations[result.ReservationStationId].ResultGenerated -= OnSourceUpdated;
     }
 
     private void UpdateState()
