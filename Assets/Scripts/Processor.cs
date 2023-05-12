@@ -71,8 +71,12 @@ public class Processor
         RegisterAllocationTable = new int[processorSpecification.NumRegisters];
     }
 
-    private void Process()
+    private void Process(ProgramSpecification programSpecification)
     {
+        Instructions = programSpecification.Instructions;
+        Memory = programSpecification.InitialMemory;
+        ProcessorMode = programSpecification.InitialProcessorMode;
+        
         while (!_finished)
         {
             // Step 1: Process the current data.
