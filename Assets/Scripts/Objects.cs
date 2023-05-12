@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Unity.Services.Core;
 
 public enum Opcode {
     ADD,
@@ -35,6 +36,20 @@ public struct Instruction
     public override string ToString()
     {
         return Opcode + " " + string.Join(' ', Operands);
+    }
+}
+
+public struct ProgramSpecification
+{
+    public Instruction[] Instructions;
+    public int[] InitialMemory;
+    public ProcessorMode InitialProcessorMode;
+
+    public ProgramSpecification(Instruction[] instructions, int[] initialMemory, ProcessorMode initialProcessorMode)
+    {
+        Instructions = instructions;
+        InitialMemory = initialMemory;
+        InitialProcessorMode = initialProcessorMode;
     }
 }
 
