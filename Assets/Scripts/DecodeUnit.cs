@@ -1,267 +1,77 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 public class DecodeUnit
 {
     public (Instruction, int)? Input;
-    private ReservationStationData? _output;
     private readonly Processor _processor;
 
     public DecodeUnit(Processor processor)
     {
         Input = null;
-        _output = null;
         _processor = processor;
+        _processor.BranchMispredict += OnBranchMispredict;
+    }
+
+    ~DecodeUnit()
+    {
+        _processor.BranchMispredict -= OnBranchMispredict;
     }
 
     public void Decode()
     {
-        if (!((Input != null) & (_output != null))) return;
+        // If we haven't been given anything to decode, or we haven't been able to give our output to a reservation station, do nothing.
+        if (Input == null) return;
+        
         var instruction = Input.Value.Item1;
         var opcode = instruction.Opcode;
         var convertedInstruction = _processor.RegisterAllocationTable.ConvertInstruction(instruction);
+        
+        // If there is no available destination register, then stall.
+        if (convertedInstruction == null) return;
 
-        if (IntegerArithmeticUnit.CompatibleOpcodes.Contains(opcode))
-        {
-            // Make reservation station entry and reorder buffer entry.
-        }
-        else if (BranchUnit.CompatibleOpcodes.Contains(opcode))
-        {
-            // Make reservation station entry.
-        }
-        else
-        {
-            // Do whatever it is I have to do for load and store instructions.
-            
-            // Need to wait for any arguments. - Reservation station!
-            // Need to calculate their addresses.
-            // Need to wait out any hazards.
-        }
+        // If there is no space in the ROB or the reservation stations, stall.
+        var reservationStation = _processor.GetAvailableReservationStation();
+        if ((reservationStation == null) | _processor.ReorderBuffer.IsFull()) return;
         
+        // Make a ROB entry.
+        // Make a reservation station entry.
+        var sources = new List<int?>();
+        var sourceValues = new List<int?>();
+        foreach (var originalSource in instruction.Sources)
+        {
+            var sourceInformation = GetSourceInformation(originalSource);
+            sources.Add(sourceInformation.Item1);
+            sourceValues.Add(sourceInformation.Item2);
+        }
+        var reservationStationData = new ReservationStationData(instruction.Opcode, instruction.Destination, sources.ToArray(),
+            sourceValues.ToArray(), Input.Value.Item2);
         
-        var destinationRegister = GetDestinationRegister(Input.Value);
-        var sourceInformation = GetSourceInformation(Input.Value);
-        _output = new ReservationStationData(opcode, destinationRegister, sourceInformation.Item1,
-            sourceInformation.Item2);
         Input = null;
     }
 
-    public ReservationStationData? Pop()
+    private (int?, int?) GetSourceInformation(int originalSource)
     {
-        var result = _output;
-        _output = null;
-        return result;
-    }
+        var robEntryIndex = Array.FindIndex(_processor.ReorderBuffer.Entries, entry => entry.Register == originalSource);
+        
+        // If there's no ROB entry for this, then just use whatever is in the physical register.
+        if (robEntryIndex == -1) return (null, _processor.Registers[originalSource]);
 
+        // Otherwise, return whatever is indicated by the ROB entry;
+        var robEntryValue = _processor.ReorderBuffer.Entries[robEntryIndex].GetValue();
+        return robEntryValue == null ? (robEntryIndex, null) : (null, robEntryValue);
+    }
+    
     public bool IsFree()
     {
-        return (_output == null) | (Input == null);
+        return Input == null;
     }
 
-    public bool HasOutput()
+    private void OnBranchMispredict(int fetchNum)
     {
-        return _output != null;
-    }
+        if (Input == null) return;
 
-    private (int?[], int?[]) GetSourceInformation(Instruction instruction)
-    {
-        int?[] sources, sourceValues;
-        switch (instruction.Opcode)
-        {
-            case Opcode.ADD:
-                sources = new int?[]
-                {
-                    _processor.Scoreboard[instruction.Operands[1]],
-                    _processor.Scoreboard[instruction.Operands[2]]
-                };
-                sourceValues = new int?[]
-                {
-                    sources[0] == null ? _processor.Registers[instruction.Operands[1]] : null,
-                    sources[1] == null ? _processor.Registers[instruction.Operands[2]] : null
-                };
-                break;
-            case Opcode.ADDI:
-                sources = new int?[]
-                {
-                    _processor.Scoreboard[instruction.Operands[1]],
-                    null
-                };
-                sourceValues = new int?[]
-                {
-                    sources[0] == null ? _processor.Registers[instruction.Operands[1]] : null,
-                    instruction.Operands[2]
-                };
-                break;
-            case Opcode.SUB:
-                sources = new int?[]
-                {
-                    _processor.Scoreboard[instruction.Operands[1]],
-                    _processor.Scoreboard[instruction.Operands[2]]
-                };
-                sourceValues = new int?[]
-                {
-                    sources[0] == null ? _processor.Registers[instruction.Operands[1]] : null,
-                    sources[1] == null ? _processor.Registers[instruction.Operands[2]] : null
-                };
-                break;
-            case Opcode.SUBI:
-                sources = new int?[]
-                {
-                    _processor.Scoreboard[instruction.Operands[1]],
-                    null
-                };
-                sourceValues = new int?[]
-                {
-                    sources[0] == null ? _processor.Registers[instruction.Operands[1]] : null,
-                    instruction.Operands[2]
-                };
-                break;
-            case Opcode.MUL:
-                sources = new int?[]
-                {
-                    _processor.Scoreboard[instruction.Operands[1]],
-                    _processor.Scoreboard[instruction.Operands[2]]
-                };
-                sourceValues = new int?[]
-                {
-                    sources[0] == null ? _processor.Registers[instruction.Operands[1]] : null,
-                    sources[1] == null ? _processor.Registers[instruction.Operands[2]] : null
-                };
-                break;
-            case Opcode.DIV:
-                sources = new int?[]
-                {
-                    _processor.Scoreboard[instruction.Operands[1]],
-                    _processor.Scoreboard[instruction.Operands[2]]
-                };
-                sourceValues = new int?[]
-                {
-                    sources[0] == null ? _processor.Registers[instruction.Operands[1]] : null,
-                    sources[1] == null ? _processor.Registers[instruction.Operands[2]] : null
-                };
-                break;
-            case Opcode.MOD:
-                sources = new int?[]
-                {
-                    _processor.Scoreboard[instruction.Operands[1]],
-                    _processor.Scoreboard[instruction.Operands[2]]
-                };
-                sourceValues = new int?[]
-                {
-                    sources[0] == null ? _processor.Registers[instruction.Operands[1]] : null,
-                    sources[1] == null ? _processor.Registers[instruction.Operands[2]] : null
-                };
-                break;
-            case Opcode.COPY:
-                sources = new int?[]
-                {
-                    _processor.Scoreboard[instruction.Operands[1]]
-                };
-                sourceValues = new int?[]
-                {
-                    sources[0] == null ? _processor.Registers[instruction.Operands[1]] : null
-                };
-                break;
-            case Opcode.COPYI:
-                sources = new int?[]
-                {
-                    null
-                };
-                sourceValues = new int?[]
-                {
-                    instruction.Operands[1]
-                };
-                break;
-            case Opcode.LOAD:
-                sources = new int?[]
-                {
-                    _processor.Scoreboard[instruction.Operands[1]]
-                };
-                sourceValues = new int?[]
-                {
-                    sources[0] == null ? _processor.Registers[instruction.Operands[1]] : null
-                };
-                break;
-            case Opcode.LOADI:
-                sources = new int?[]
-                {
-                    null
-                };
-                sourceValues = new int?[]
-                {
-                    instruction.Operands[1]
-                };
-                break;
-            case Opcode.STORE:
-                sources = new int?[]
-                {
-                    _processor.Scoreboard[instruction.Operands[1]],
-                    _processor.Scoreboard[instruction.Operands[2]]
-                };
-                sourceValues = new int?[]
-                {
-                    sources[0] == null ? _processor.Registers[instruction.Operands[1]] : null,
-                    sources[1] == null ? _processor.Registers[instruction.Operands[2]] : null
-                };
-                break;
-            case Opcode.BRANCHE:
-                sources = new int?[]
-                {
-                    _processor.Scoreboard[instruction.Operands[1]],
-                    _processor.Scoreboard[instruction.Operands[2]]
-                };
-                sourceValues = new int?[]
-                {
-                    sources[0] == null ? _processor.Registers[instruction.Operands[1]] : null,
-                    sources[1] == null ? _processor.Registers[instruction.Operands[2]] : null
-                };
-                break;
-            case Opcode.BRANCHG:
-                sources = new int?[]
-                {
-                    _processor.Scoreboard[instruction.Operands[1]],
-                    _processor.Scoreboard[instruction.Operands[2]]
-                };
-                sourceValues = new int?[]
-                {
-                    sources[0] == null ? _processor.Registers[instruction.Operands[1]] : null,
-                    sources[1] == null ? _processor.Registers[instruction.Operands[2]] : null
-                };
-                break;
-            case Opcode.BRANCHGE:
-                sources = new int?[]
-                {
-                    _processor.Scoreboard[instruction.Operands[1]],
-                    _processor.Scoreboard[instruction.Operands[2]]
-                };
-                sourceValues = new int?[]
-                {
-                    sources[0] == null ? _processor.Registers[instruction.Operands[1]] : null,
-                    sources[1] == null ? _processor.Registers[instruction.Operands[2]] : null
-                };
-                break;
-            case Opcode.JUMP:
-                sources = new int?[]
-                {
-                    null
-                };
-                sourceValues = new int?[]
-                {
-                    instruction.Operands[1]
-                };
-                break;
-            case Opcode.BREAK:
-                sources = new int?[] { };
-                sourceValues = new int?[] { };
-                break;
-            case Opcode.HALT:
-                sources = new int?[] { };
-                sourceValues = new int?[] { };
-                break;
-            default:
-                throw new ArgumentOutOfRangeException();
-        }
-
-        return (sources, sourceValues);
+        if (Input.Value.Item2 > fetchNum) Input = null;
     }
 }

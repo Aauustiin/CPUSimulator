@@ -24,13 +24,13 @@ public class FetchUnit
         
         if (_output.Value.Item1.Opcode == Opcode.JUMP)
         {
-            _processor.ProgramCounter += _output.Value.Item1.Operands[0];
+            _processor.ProgramCounter += _output.Value.Item1.Sources[0];
             _output = null;
         }
         else if (((_output.Value.Item1.Opcode == Opcode.BRANCHE) | (_output.Value.Item1.Opcode == Opcode.BRANCHG) |
                  (_output.Value.Item1.Opcode == Opcode.BRANCHGE)) & _processor.BranchPredictionUnit.Predict(_output.Value.Item1))
         {
-            _processor.ProgramCounter += _output.Value.Item1.Operands[2];
+            _processor.ProgramCounter += _output.Value.Item1.Sources[2];
         }
         else _processor.ProgramCounter++;
     }

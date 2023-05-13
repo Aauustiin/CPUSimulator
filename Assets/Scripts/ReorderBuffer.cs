@@ -9,6 +9,10 @@ public class ReorderBuffer
     public ReorderBuffer(int size)
     {
         Entries = new ReorderBufferEntry[size];
+        for (var i = 0; i < size; i++)
+        {
+            Entries[i].Id = i;
+        }
     }
 
     public void Issue(ReorderBufferEntry entry)
@@ -41,13 +45,14 @@ public class ReorderBufferEntry
 {
     public int Register;
     private int? _value;
+    public int Id;
 
-    public event System.Action ValueProvided;
+    public event System.Action<int> ValueProvided;
 
     public void SetValue(int value)
     {
         _value = value;
-        ValueProvided?.Invoke();
+        ValueProvided?.Invoke(Id);
     }
 
     public int? GetValue()
@@ -55,9 +60,10 @@ public class ReorderBufferEntry
         return _value;
     }
     
-    public ReorderBufferEntry(int register)
+    public ReorderBufferEntry(int register, int id)
     {
         Register = register;
         _value = null;
+        Id = id;
     }
 }

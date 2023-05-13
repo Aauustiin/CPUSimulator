@@ -1,6 +1,6 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine;
 
 public class Processor
 {
@@ -69,7 +69,7 @@ public class Processor
         ReorderBuffer = new ReorderBuffer(processorSpecification.ReorderBufferSize);
 
         Registers = new int[processorSpecification.NumPhysicalRegisters];
-        RegisterAllocationTable = new RegisterAllocationTable(processorSpecification.NumArchitecturalRegisters);
+        RegisterAllocationTable = new RegisterAllocationTable(processorSpecification.NumArchitecturalRegisters, this);
 
         BranchPredictionUnit = new NeverBranchUnit();
     }
@@ -96,21 +96,9 @@ public class Processor
 
             // Step 2: Assign new data.
 
-            // TODO: Commit results from the reorder buffer to the physical register files?
+            // TODO: Reservation stations must issue to free execution units.
 
-            // TODO: Move results from execution units to the reorder buffer? 
-
-            // TODO: Issue from reservation stations to free execution units
-
-            // Assign decoded instructions to free reservation stations.
-            var fullDecodeUnits = _decodeUnits.Where(decodeUnit => decodeUnit.HasOutput()).ToArray();
-            var freeReservationStations = ReservationStations.Where(reservationStation =>
-                reservationStation.GetState() == ReservationStationState.FREE).ToArray();
-            for (var i = 0; (i < freeReservationStations.Count()) & (i < fullDecodeUnits.Count()) & (!ReorderBuffer.IsFull()); i++)
-            {
-                ReorderBuffer.Issue(new ReorderBufferEntry());
-                freeReservationStations[i].SetReservationStationData(fullDecodeUnits[i].Pop().Value);
-            }
+           // Decode units will send their stuff to the reorder buffer and the reservation stations already.
 
             // Assign fetched instructions to free decode units.
             var fullFetchUnits = _fetchUnits.Where(fetchUnit => fetchUnit.HasOutput());
@@ -154,6 +142,12 @@ public class Processor
 
         if (potentialRegisters.Count == 0) return null;
         return potentialRegisters[0];
+    }
+
+    public int? GetAvailableReservationStation()
+    {
+        var result = Array.FindIndex(ReservationStations, station => station.GetState() == ReservationStationState.FREE);
+        return result == -1 ? null : result;
     }
 }
 

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 public class ReservationStation
@@ -7,38 +8,58 @@ public class ReservationStation
     public ReservationStationData? ReservationStationData;
     private readonly Processor _processor;
     private ReservationStationState _state;
+    private List<int> _subscriptions;
 
     public ReservationStation(int id, Processor processor)
     {
         Id = id;
         _processor = processor;
         _state = ReservationStationState.FREE;
+        _subscriptions = new List<int>();
+        _processor.BranchMispredict += OnBranchMispredict;
     }
 
+    ~ReservationStation()
+    {
+        _processor.BranchMispredict -= OnBranchMispredict;
+    }
+    
     public void SetReservationStationData(ReservationStationData reservationStationData)
     {
         ReservationStationData = reservationStationData;
-        if (reservationStationData.DestinationRegister != null)
-            _processor.Scoreboard[reservationStationData.DestinationRegister.Value] = Id;
+        
         foreach (var source in reservationStationData.Sources)
         {
             if (source != null)
             {
-                _processor.ReservationStations[source.Value].ResultGenerated += OnSourceUpdated;
+                _processor.ReorderBuffer.Entries[source.Value].ValueProvided += OnSourceUpdated;
+                _subscriptions.Add(source.Value);
             }
         }
+        
         UpdateState();
     }
 
-    private void OnSourceUpdated(Result result)
+    private void OnSourceUpdated(int source)
     {
-        var sourceIndex = Array.IndexOf(ReservationStationData.Value.Sources, result.ReservationStationId);
+        _processor.ReorderBuffer.Entries[source].ValueProvided -= OnSourceUpdated;
+        _subscriptions.Remove(source);
+        
+        var robEntry = _processor.ReorderBuffer.Entries[source];
+        var robEntryValue = robEntry.GetValue();
+
+        var sourceIndex = Array.IndexOf(ReservationStationData.Value.Sources, source);
         ReservationStationData.Value.Sources[sourceIndex] = null;
-        ReservationStationData.Value.SourceValues[sourceIndex] = result.Value;
+        ReservationStationData.Value.SourceValues[sourceIndex] = robEntryValue;
+        
         UpdateState();
-        _processor.ReservationStations[result.ReservationStationId].ResultGenerated -= OnSourceUpdated;
     }
 
+    public void Issue()
+    {
+        //
+    }
+    
     private void UpdateState()
     {
         if (ReservationStationData == null) _state = ReservationStationState.FREE;
@@ -52,11 +73,15 @@ public class ReservationStation
         return _state;
     }
 
-    public event System.Action<Result> ResultGenerated;
-
-    public void TriggerResultGenerated(Result result)
+    public void OnBranchMispredict(int fetchNum)
     {
-        ResultGenerated?.Invoke(result);
+        if (!((ReservationStationData != null) & (ReservationStationData.Value.FetchNum > fetchNum))) return;
+
+        foreach (var entry in _subscriptions)
+        {
+            _processor.ReorderBuffer.Entries[entry].ValueProvided -= OnSourceUpdated;
+        }
+        _subscriptions.Clear();
         ReservationStationData = null;
         _state = ReservationStationState.FREE;
     }
@@ -68,13 +93,15 @@ public struct ReservationStationData
     public int? DestinationRegister;
     public int?[] Sources;
     public int?[] SourceValues;
+    public int FetchNum;
 
-    public ReservationStationData(Opcode opcode, int? destinationRegister, int?[] sources, int?[] sourceValues)
+    public ReservationStationData(Opcode opcode, int? destinationRegister, int?[] sources, int?[] sourceValues, int fetchNum)
     {
         Opcode = opcode;
         DestinationRegister = destinationRegister;
         Sources = sources;
         SourceValues = sourceValues;
+        FetchNum = fetchNum;
     }
 }
 
