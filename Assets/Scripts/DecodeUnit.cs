@@ -54,7 +54,7 @@ public class DecodeUnit
 
     private (int?, int?) GetSourceInformation(int originalSource)
     {
-        var robEntryIndex = Array.FindIndex(_processor.ReorderBuffer.Entries, entry => entry.Register == originalSource);
+        var robEntryIndex = Array.FindIndex(_processor.ReorderBuffer.Entries, entry => entry.GetDestination() == originalSource);
         
         // If there's no ROB entry for this, then just use whatever is in the physical register.
         if (robEntryIndex == -1) return (null, _processor.Registers[originalSource]);

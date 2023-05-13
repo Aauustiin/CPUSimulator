@@ -2,7 +2,7 @@ using System.Linq;
 
 public class ReorderBuffer
 {
-    public ReorderBufferEntry[] Entries;
+    public readonly ReorderBufferEntry[] Entries;
     private int _issuePointer, _commitPointer = -1;
     private Processor _processor;
     
@@ -27,9 +27,9 @@ public class ReorderBuffer
         // Update Value
         Entries[entryNum].SetValue(value);
         // Commit anything that needs to be committed.
-        while (Entries[_commitPointer].GetValue() != null)
+        while ((Entries[_commitPointer].GetValue() != null) & (Entries[_commitPointer].GetDestination() != null))
         {
-            _processor.Registers[Entries[_commitPointer].Register] = value;
+            _processor.Registers[Entries[_commitPointer].GetDestination().Value] = value;
             Entries[_commitPointer] = null;
             _commitPointer = (_commitPointer + 1) % Entries.Length;
         }
@@ -43,11 +43,13 @@ public class ReorderBuffer
 
 public class ReorderBufferEntry
 {
-    public int Register;
+    private int? _destination;
     private int? _value;
     public int Id;
 
     public event System.Action<int> ValueProvided;
+    
+    public event System.Action<int> DestinationProvided;
 
     public void SetValue(int value)
     {
@@ -59,10 +61,21 @@ public class ReorderBufferEntry
     {
         return _value;
     }
-    
-    public ReorderBufferEntry(int register, int id)
+
+    public void SetDestination(int destination)
     {
-        Register = register;
+        _destination = destination;
+        DestinationProvided?.Invoke(Id);
+    }
+
+    public int? GetDestination()
+    {
+        return _destination;
+    }
+    
+    public ReorderBufferEntry(int destination, int id)
+    {
+        _destination = destination;
         _value = null;
         Id = id;
     }

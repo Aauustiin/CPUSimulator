@@ -75,7 +75,7 @@ public class ReservationStation
         return _state;
     }
 
-    public void OnBranchMispredict(int fetchNum)
+    private void OnBranchMispredict(int fetchNum)
     {
         if (!((ReservationStationData != null) & (ReservationStationData.Value.FetchNum > fetchNum))) return;
 

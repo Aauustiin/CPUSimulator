@@ -13,7 +13,7 @@ public class Processor
     public readonly ReorderBuffer ReorderBuffer;
 
     public readonly int[] Registers;
-    public RegisterAllocationTable RegisterAllocationTable;
+    public readonly RegisterAllocationTable RegisterAllocationTable;
     
     public int[] Memory;
     public Instruction[] Instructions;
@@ -145,7 +145,8 @@ public class Processor
         }
         foreach (var entry in ReorderBuffer.Entries)
         {
-            potentialRegisters.Remove(entry.Register);
+            var destination = entry.GetDestination();
+            if (destination != null) potentialRegisters.Remove(entry.GetDestination().Value);
         }
 
         if (potentialRegisters.Count == 0) return null;
