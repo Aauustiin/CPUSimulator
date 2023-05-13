@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 
 public class ReorderBuffer
@@ -15,6 +16,7 @@ public class ReorderBuffer
         }
     }
 
+    // This is for adding something to the Reorder Buffer
     public void Issue(ReorderBufferEntry entry)
     {
         if (IsFull()) return; // Can't issue anything if we don't have space.
@@ -22,14 +24,18 @@ public class ReorderBuffer
         _issuePointer = (_issuePointer + 1) % Entries.Length;
     }
     
-    public void Update(int entryNum, int value)
+    // Update a given entry with a new value and/or destination.
+    public void Update(int entryNum, int? value, int? destination)
     {
         // Update Value
-        Entries[entryNum].SetValue(value);
+        if (value != null) Entries[entryNum].SetValue(value.Value);
+        if (destination != null) Entries[entryNum].SetDestination(destination.Value);
         // Commit anything that needs to be committed.
         while ((Entries[_commitPointer].GetValue() != null) & (Entries[_commitPointer].GetDestination() != null))
         {
-            _processor.Registers[Entries[_commitPointer].GetDestination().Value] = value;
+            if (Entries[_commitPointer].Opcode != Opcode.STORE)
+                _processor.Registers[Entries[_commitPointer].GetDestination().Value] = Entries[_commitPointer].GetValue().Value;
+            else _processor.Memory[Entries[_commitPointer].GetDestination().Value] = Entries[_commitPointer].GetValue().Value;
             Entries[_commitPointer] = null;
             _commitPointer = (_commitPointer + 1) % Entries.Length;
         }
@@ -46,6 +52,7 @@ public class ReorderBufferEntry
     private int? _destination;
     private int? _value;
     public int Id;
+    public Opcode Opcode;
 
     public event System.Action<int> ValueProvided;
     
@@ -73,7 +80,7 @@ public class ReorderBufferEntry
         return _destination;
     }
     
-    public ReorderBufferEntry(int destination, int id)
+    public ReorderBufferEntry(int destination, int value, Opcode opcode, int id)
     {
         _destination = destination;
         _value = null;
