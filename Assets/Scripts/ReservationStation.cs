@@ -4,7 +4,6 @@ using System.Linq;
 
 public class ReservationStation
 {
-    public readonly int Id;
     public ReservationStationData? ReservationStationData;
     private readonly Processor _processor;
     private ReservationStationState _state;
@@ -12,7 +11,6 @@ public class ReservationStation
 
     public ReservationStation(int id, Processor processor)
     {
-        Id = id;
         _processor = processor;
         _state = ReservationStationState.FREE;
         _subscriptions = new List<int>();
@@ -57,7 +55,11 @@ public class ReservationStation
 
     public void Issue()
     {
-        //
+        var executionUnit = Array.Find(_processor.ExecutionUnits,
+            unit => unit.IsFree() & unit.GetCompatibleOpcodes().Contains(ReservationStationData.Value.Opcode));
+        executionUnit.SetInput(ReservationStationData.Value);
+        Clear();
+        
     }
     
     private void UpdateState()
@@ -77,6 +79,11 @@ public class ReservationStation
     {
         if (!((ReservationStationData != null) & (ReservationStationData.Value.FetchNum > fetchNum))) return;
 
+        Clear();
+    }
+
+    private void Clear()
+    {
         foreach (var entry in _subscriptions)
         {
             _processor.ReorderBuffer.Entries[entry].ValueProvided -= OnSourceUpdated;

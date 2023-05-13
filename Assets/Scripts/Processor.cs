@@ -6,9 +6,7 @@ public class Processor
 {
     private readonly FetchUnit[] _fetchUnits;
     private readonly DecodeUnit[] _decodeUnits;
-    private readonly IntegerArithmeticUnit[] _integerArithmeticUnits;
-    private readonly BranchUnit[] _branchUnits;
-    private readonly LoadStoreUnit[] _loadStoreUnits;
+    public readonly IExecutionUnit[] ExecutionUnits;
 
     public readonly IBranchPredictionUnit BranchPredictionUnit;
     public readonly ReservationStation[] ReservationStations;
@@ -42,23 +40,24 @@ public class Processor
             _decodeUnits[i] = new DecodeUnit(this);
         }
 
-        _integerArithmeticUnits = new IntegerArithmeticUnit[processorSpecification.NumIntegerArithmeticUnits];
+        var tempExecutionUnits = new List<IExecutionUnit>();
+        
         for (var i = 0; i < processorSpecification.NumIntegerArithmeticUnits; i++)
         {
-            _integerArithmeticUnits[i] = new IntegerArithmeticUnit(this);
+            tempExecutionUnits.Add(new IntegerArithmeticUnit(this));
         }
 
-        _branchUnits = new BranchUnit[processorSpecification.NumBranchUnits];
         for (var i = 0; i < processorSpecification.NumBranchUnits; i++)
         {
-            _branchUnits[i] = new BranchUnit(this);
+            tempExecutionUnits.Add(new BranchUnit(this));
         }
 
-        _loadStoreUnits = new LoadStoreUnit[processorSpecification.NumLoadStoreUnits];
         for (var i = 0; i < processorSpecification.NumLoadStoreUnits; i++)
         {
-            _loadStoreUnits[i] = new LoadStoreUnit(this);
+            tempExecutionUnits.Add(new LoadStoreUnit(this));
         }
+
+        ExecutionUnits = tempExecutionUnits.ToArray();
 
         ReservationStations = new ReservationStation[processorSpecification.NumReservationStations];
         for (var i = 0; i < processorSpecification.NumReservationStations; i++)
