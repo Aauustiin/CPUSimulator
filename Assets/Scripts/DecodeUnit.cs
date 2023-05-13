@@ -1,8 +1,9 @@
 using System;
+using System.Linq;
 
 public class DecodeUnit
 {
-    public Instruction? Input;
+    public (Instruction, int)? Input;
     private ReservationStationData? _output;
     private readonly Processor _processor;
 
@@ -15,15 +16,34 @@ public class DecodeUnit
 
     public void Decode()
     {
-        if ((Input != null) & (_output != null))
+        if (!((Input != null) & (_output != null))) return;
+        var instruction = Input.Value.Item1;
+        var opcode = instruction.Opcode;
+        var convertedInstruction = _processor.RegisterAllocationTable.ConvertInstruction(instruction);
+
+        if (IntegerArithmeticUnit.CompatibleOpcodes.Contains(opcode))
         {
-            var opcode = Input.Value.Opcode;
-            var destinationRegister = GetDestinationRegister(Input.Value);
-            var sourceInformation = GetSourceInformation(Input.Value);
-            _output = new ReservationStationData(opcode, destinationRegister, sourceInformation.Item1,
-                sourceInformation.Item2);
-            Input = null;
+            // Make reservation station entry and reorder buffer entry.
         }
+        else if (BranchUnit.CompatibleOpcodes.Contains(opcode))
+        {
+            // Make reservation station entry.
+        }
+        else
+        {
+            // Do whatever it is I have to do for load and store instructions.
+            
+            // Need to wait for any arguments. - Reservation station!
+            // Need to calculate their addresses.
+            // Need to wait out any hazards.
+        }
+        
+        
+        var destinationRegister = GetDestinationRegister(Input.Value);
+        var sourceInformation = GetSourceInformation(Input.Value);
+        _output = new ReservationStationData(opcode, destinationRegister, sourceInformation.Item1,
+            sourceInformation.Item2);
+        Input = null;
     }
 
     public ReservationStationData? Pop()
@@ -243,31 +263,5 @@ public class DecodeUnit
         }
 
         return (sources, sourceValues);
-    }
-    
-    private static int? GetDestinationRegister(Instruction instruction)
-    {
-        return instruction.Opcode switch
-        {
-            Opcode.ADD => instruction.Operands[0],
-            Opcode.ADDI => instruction.Operands[0],
-            Opcode.SUB => instruction.Operands[0],
-            Opcode.SUBI => instruction.Operands[0],
-            Opcode.MUL => instruction.Operands[0],
-            Opcode.DIV => instruction.Operands[0],
-            Opcode.MOD => instruction.Operands[0],
-            Opcode.COPY => instruction.Operands[0],
-            Opcode.COPYI => instruction.Operands[0],
-            Opcode.LOAD => instruction.Operands[0],
-            Opcode.LOADI => instruction.Operands[0],
-            Opcode.STORE => null,
-            Opcode.BRANCHE => null,
-            Opcode.BRANCHG => null,
-            Opcode.BRANCHGE => null,
-            Opcode.JUMP => null,
-            Opcode.BREAK => null,
-            Opcode.HALT => null,
-            _ => throw new ArgumentOutOfRangeException()
-        };
     }
 }

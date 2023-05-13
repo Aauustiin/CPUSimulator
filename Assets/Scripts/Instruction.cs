@@ -23,18 +23,20 @@ public enum Opcode {
 
 public struct Instruction
 {
-    public Opcode Opcode;
-    public readonly List<int> Operands;
+    public readonly Opcode Opcode;
+    public readonly int? Destination;
+    public readonly List<int> Sources;
 
-    public Instruction(Opcode opcode, List<int> operands)
+    public Instruction(Opcode opcode, int? destination, List<int> sources)
     {
         Opcode = opcode;
-        Operands = operands;
+        Destination = destination;
+        Sources = sources;
     }
 
     public override string ToString()
     {
-        return Opcode + " " + string.Join(' ', Operands);
+        return Opcode + " " + Destination + " " + string.Join(' ', Sources);
     }
 }
 

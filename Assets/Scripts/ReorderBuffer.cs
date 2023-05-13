@@ -2,38 +2,38 @@ using System.Linq;
 
 public class ReorderBuffer
 {
-    private ReorderBufferEntry[] _entries;
+    public ReorderBufferEntry[] Entries;
     private int _issuePointer, _commitPointer = -1;
     private Processor _processor;
     
     public ReorderBuffer(int size)
     {
-        _entries = new ReorderBufferEntry[size];
+        Entries = new ReorderBufferEntry[size];
     }
 
     public void Issue(ReorderBufferEntry entry)
     {
         if (IsFull()) return; // Can't issue anything if we don't have space.
-        _entries[_issuePointer] = entry;
-        _issuePointer = (_issuePointer + 1) % _entries.Length;
+        Entries[_issuePointer] = entry;
+        _issuePointer = (_issuePointer + 1) % Entries.Length;
     }
     
     public void Update(int entryNum, int value)
     {
         // Update Value
-        _entries[entryNum].SetValue(value);
+        Entries[entryNum].SetValue(value);
         // Commit anything that needs to be committed.
-        while (_entries[_commitPointer].GetValue() != null)
+        while (Entries[_commitPointer].GetValue() != null)
         {
-            _processor.Registers[_entries[_commitPointer].Register] = value;
-            _entries[_commitPointer] = null;
-            _commitPointer = (_commitPointer + 1) % _entries.Length;
+            _processor.Registers[Entries[_commitPointer].Register] = value;
+            Entries[_commitPointer] = null;
+            _commitPointer = (_commitPointer + 1) % Entries.Length;
         }
     }
     
     public bool IsFull()
     {
-        return _entries.All(entry => entry != null);
+        return Entries.All(entry => entry != null);
     }
 }
 

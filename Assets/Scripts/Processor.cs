@@ -1,27 +1,28 @@
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
 public class Processor
 {
-    private FetchUnit[] _fetchUnits;
-    private DecodeUnit[] _decodeUnits;
-    private IntegerArithmeticUnit[] _integerArithmeticUnits;
-    private BranchUnit[] _branchUnits;
-    private LoadStoreUnit[] _loadStoreUnits;
+    private readonly FetchUnit[] _fetchUnits;
+    private readonly DecodeUnit[] _decodeUnits;
+    private readonly IntegerArithmeticUnit[] _integerArithmeticUnits;
+    private readonly BranchUnit[] _branchUnits;
+    private readonly LoadStoreUnit[] _loadStoreUnits;
 
-    public BranchPredictionUnit BranchPredictionUnit;
-    public ReservationStation[] ReservationStations;
-    public ReorderBuffer ReorderBuffer;
+    public readonly IBranchPredictionUnit BranchPredictionUnit;
+    public readonly ReservationStation[] ReservationStations;
+    public readonly ReorderBuffer ReorderBuffer;
 
     public readonly int[] Registers;
-    public readonly int?[] Scoreboard;
-    public int[] RegisterAllocationTable;
+    public RegisterAllocationTable RegisterAllocationTable;
     
     public int[] Memory;
     public Instruction[] Instructions;
 
     public int ProgramCounter;
     private int _cycle;
+    public int FetchCounter;
     public int InstructionsExecuted;
     private bool _finished;
 
@@ -67,11 +68,10 @@ public class Processor
 
         ReorderBuffer = new ReorderBuffer(processorSpecification.ReorderBufferSize);
 
-        Registers = new int[processorSpecification.NumRegisters];
-        Scoreboard = new int?[processorSpecification.NumRegisters];
-        RegisterAllocationTable = new int[processorSpecification.NumRegisters];
+        Registers = new int[processorSpecification.NumPhysicalRegisters];
+        RegisterAllocationTable = new RegisterAllocationTable(processorSpecification.NumArchitecturalRegisters);
 
-        BranchPredictionUnit = new BranchPredictionUnit();
+        BranchPredictionUnit = new NeverBranchUnit();
     }
 
     private void Process(ProgramSpecification programSpecification)
@@ -121,16 +121,39 @@ public class Processor
         }
     }
 
-    public void Halt()
-    {
-        _finished = true;
+    //public void Halt()
+    //{
+    //    _finished = true;
+    //
+    //    Debug.Log("Finished!");
+    //    Debug.Log("Registers: " + string.Join(',', Registers));
+    //    Debug.Log("Memory: " + string.Join(',', Memory));
+    //    Debug.Log("Instructions Executed: " + InstructionsExecuted);
+    //    Debug.Log("Cycles Taken: " + _cycle);
+    //    Debug.Log("Instructions Per Cycle (IPC): " + ((float)InstructionsExecuted/_cycle).ToString("N2"));
+    //}
 
-        Debug.Log("Finished!");
-        Debug.Log("Registers: " + string.Join(',', Registers));
-        Debug.Log("Memory: " + string.Join(',', Memory));
-        Debug.Log("Instructions Executed: " + InstructionsExecuted);
-        Debug.Log("Cycles Taken: " + _cycle);
-        Debug.Log("Instructions Per Cycle (IPC): " + ((float)InstructionsExecuted/_cycle).ToString("N2"));
+    public event System.Action<int> BranchMispredict;
+
+    public void TriggerBranchMispredict(int fetchNum)
+    {
+        BranchMispredict?.Invoke(fetchNum);
+    }
+
+    public int? GetAvailableRegister()
+    {
+        var potentialRegisters = new List<int>();
+        for (var i = 0; i < Registers.Length; i++)
+        {
+            potentialRegisters.Add(i);
+        }
+        foreach (var entry in ReorderBuffer.Entries)
+        {
+            potentialRegisters.Remove(entry.Register);
+        }
+
+        if (potentialRegisters.Count == 0) return null;
+        return potentialRegisters[0];
     }
 }
 
@@ -142,7 +165,8 @@ public struct ProcessorSpecification
     public int NumBranchUnits;
     public int NumLoadStoreUnits;
     public int NumReservationStations;
-    public int NumRegisters;
+    public int NumPhysicalRegisters;
+    public int NumArchitecturalRegisters;
     public int ReorderBufferSize;
 
     public ProcessorSpecification(
@@ -152,7 +176,8 @@ public struct ProcessorSpecification
         int numBranchUnits, 
         int numLoadStoreUnits, 
         int numReservationStations, 
-        int numRegisters, 
+        int numPhysicalRegisters,
+        int numArchitecturalRegisters,
         int reorderBufferSize)
     {
         NumFetchUnits = numFetchUnits;
@@ -161,7 +186,8 @@ public struct ProcessorSpecification
         NumBranchUnits = numBranchUnits;
         NumLoadStoreUnits = numLoadStoreUnits;
         NumReservationStations = numReservationStations;
-        NumRegisters = numRegisters;
+        NumPhysicalRegisters = numPhysicalRegisters;
+        NumArchitecturalRegisters = numArchitecturalRegisters;
         ReorderBufferSize = reorderBufferSize;
     }
 }

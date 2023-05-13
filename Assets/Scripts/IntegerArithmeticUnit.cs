@@ -4,7 +4,7 @@ public class IntegerArithmeticUnit : IExecutionUnit
 {
     private readonly Processor _processor;
     
-    private readonly Opcode[] _compatibleOpcodes =
+    public static readonly Opcode[] CompatibleOpcodes =
     {
         Opcode.ADD,
         Opcode.ADDI,
@@ -24,7 +24,7 @@ public class IntegerArithmeticUnit : IExecutionUnit
     {
         // Try and find an instruction that I can execute
         var instruction = _processor.DecodeExecuteBuffer.Find(
-            ins => _compatibleOpcodes.Contains(ins.Opcode)
+            ins => CompatibleOpcodes.Contains(ins.Opcode)
         );
         var validInstruction = true;
             
