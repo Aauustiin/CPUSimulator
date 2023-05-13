@@ -47,6 +47,7 @@ public class DecodeUnit
         }
         var reservationStationData = new ReservationStationData(instruction.Opcode, instruction.Destination, sources.ToArray(),
             sourceValues.ToArray(), Input.Value.Item2);
+        _processor.ReservationStations[reservationStation.Value].SetReservationStationData(reservationStationData);
         
         Input = null;
     }
