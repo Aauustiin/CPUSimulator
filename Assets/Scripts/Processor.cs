@@ -93,11 +93,20 @@ public class Processor
                 decodeUnit.Decode();
             }
 
+            foreach (var executionUnit in ExecutionUnits)
+            {
+                executionUnit.Execute();
+            }
+
             // Step 2: Assign new data.
 
-            // TODO: Reservation stations must issue to free execution units.
+            // Ready reservation stations will issue to free execution units.
+            foreach (var station in ReservationStations)
+            {
+                if (station.GetState() == ReservationStationState.READY) station.Issue();
+            }
 
-           // Decode units will send their stuff to the reorder buffer and the reservation stations already.
+            //Decode units will send their stuff to the reorder buffer and the reservation stations already.
 
             // Assign fetched instructions to free decode units.
             var fullFetchUnits = _fetchUnits.Where(fetchUnit => fetchUnit.HasOutput());
