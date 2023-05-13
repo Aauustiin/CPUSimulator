@@ -53,10 +53,3 @@ public struct ProgramSpecification
         InitialProcessorMode = initialProcessorMode;
     }
 }
-
-public struct Result
-{
-    public int ReservationStationId;
-    public int DestinationRegister;
-    public int Value;
-}
