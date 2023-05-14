@@ -77,7 +77,7 @@ public class Processor
         ProcessorMode = processorSpecification.InitialProcessorMode;
     }
 
-    private void Process(ProgramSpecification programSpecification)
+    public void Process(ProgramSpecification programSpecification)
     {
         Instructions = programSpecification.Instructions;
         Memory = programSpecification.InitialMemory;
