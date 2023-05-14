@@ -1,4 +1,5 @@
 ﻿using System;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -13,9 +14,9 @@ public class InitialisationForm : MonoBehaviour
     [SerializeField] private Slider reservationSlider;
     [SerializeField] private Slider reorderSlider;
 
-    [SerializeField] private Dropdown predictorDropdown;
-    [SerializeField] private Dropdown modeDropdown;
-    [SerializeField] private Dropdown programDropdown;
+    [SerializeField] private TMP_Dropdown predictorDropdown;
+    [SerializeField] private TMP_Dropdown modeDropdown;
+    [SerializeField] private TMP_Dropdown programDropdown;
 
     public void OnSubmit()
     {

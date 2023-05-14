@@ -1530,6 +1530,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 59564a33d729eed48aeeb0a51303d7da, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  fetchSlider: {fileID: 1459922509}
+  decodeSlider: {fileID: 1998074994}
+  registersSlider: {fileID: 1656477818}
+  integerArithmeticSlider: {fileID: 2057454319}
+  branchSlider: {fileID: 2035195057}
+  loadStoreSlider: {fileID: 237170838}
+  reservationSlider: {fileID: 1139875879}
+  reorderSlider: {fileID: 859858758}
+  predictorDropdown: {fileID: 1350399865}
+  modeDropdown: {fileID: 1027994932}
+  programDropdown: {fileID: 1308448627}
 --- !u!1 &406262114
 GameObject:
   m_ObjectHideFlags: 0
