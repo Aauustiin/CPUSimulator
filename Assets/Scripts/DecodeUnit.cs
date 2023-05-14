@@ -24,7 +24,6 @@ public class DecodeUnit
         if (Input == null) return;
         
         var instruction = Input.Value.Item1;
-        var opcode = instruction.Opcode;
         var convertedInstruction = _processor.RegisterAllocationTable.ConvertInstruction(instruction);
         
         // If there is no available destination register, then stall.
@@ -35,6 +34,7 @@ public class DecodeUnit
         if ((reservationStation == null) | _processor.ReorderBuffer.IsFull()) return;
         
         // Make a ROB entry.
+        _processor.ReorderBuffer.Issue(instruction.Opcode, Input.Value.Item2, convertedInstruction.Value.Destination, GetResultValue(convertedInstruction.Value));
         // Make a reservation station entry.
         var sources = new List<int?>();
         var sourceValues = new List<int?>();
@@ -61,6 +61,32 @@ public class DecodeUnit
         // Otherwise, return whatever is indicated by the ROB entry;
         var robEntryValue = _processor.ReorderBuffer.Entries[robEntryIndex].GetValue();
         return robEntryValue == null ? (robEntryIndex, null) : (null, robEntryValue);
+    }
+
+    private int? GetResultValue(Instruction instruction)
+    {
+        return instruction.Opcode switch
+        {
+            Opcode.ADD => null,
+            Opcode.ADDI => null,
+            Opcode.SUB => null,
+            Opcode.SUBI => null,
+            Opcode.MUL => null,
+            Opcode.DIV => null,
+            Opcode.MOD => null,
+            Opcode.COPY => _processor.ReorderBuffer.GetRegisterValue(instruction.Sources[0]),
+            Opcode.COPYI => instruction.Sources[0],
+            Opcode.LOAD => null,
+            Opcode.LOADI => null,
+            Opcode.STORE => null,
+            Opcode.BRANCHE => null,
+            Opcode.BRANCHG => null,
+            Opcode.BRANCHGE => null,
+            Opcode.JUMP => null,
+            Opcode.BREAK => null,
+            Opcode.HALT => null,
+            _ => throw new ArgumentOutOfRangeException()
+        };
     }
     
     public bool IsFree()

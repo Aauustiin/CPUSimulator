@@ -55,6 +55,12 @@ public class ReorderBuffer
             _commitPointer = (_commitPointer + 1) % Entries.Length;
         }
     }
+
+    public int? GetRegisterValue(int register)
+    {
+        var index = Array.FindIndex(Entries, entry => (entry.GetDestination() == register) & (entry.Opcode != Opcode.STORE));
+        return index == -1 ? _processor.Registers[register] : Entries[index].GetValue();
+    }
     
     public bool IsFull()
     {

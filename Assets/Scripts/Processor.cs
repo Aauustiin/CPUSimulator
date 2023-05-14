@@ -65,7 +65,7 @@ public class Processor
             ReservationStations[i] = new ReservationStation(i, this);
         }
 
-        ReorderBuffer = new ReorderBuffer(processorSpecification.ReorderBufferSize);
+        ReorderBuffer = new ReorderBuffer(processorSpecification.ReorderBufferSize, this);
 
         Registers = new int[processorSpecification.NumPhysicalRegisters];
         RegisterAllocationTable = new RegisterAllocationTable(processorSpecification.NumArchitecturalRegisters, this);
@@ -118,18 +118,6 @@ public class Processor
             _cycle++;
         }
     }
-
-    //public void Halt()
-    //{
-    //    _finished = true;
-    //
-    //    Debug.Log("Finished!");
-    //    Debug.Log("Registers: " + string.Join(',', Registers));
-    //    Debug.Log("Memory: " + string.Join(',', Memory));
-    //    Debug.Log("Instructions Executed: " + InstructionsExecuted);
-    //    Debug.Log("Cycles Taken: " + _cycle);
-    //    Debug.Log("Instructions Per Cycle (IPC): " + ((float)InstructionsExecuted/_cycle).ToString("N2"));
-    //}
 
     public event System.Action<int> BranchMispredict;
 
