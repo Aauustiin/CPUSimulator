@@ -28,11 +28,9 @@ public class ReservationStation
         
         foreach (var source in reservationStationData.Sources)
         {
-            if (source != null)
-            {
-                _processor.ReorderBuffer.Entries[source.Value].ValueProvided += OnSourceUpdated;
-                _subscriptions.Add(source.Value);
-            }
+            if (source == null) continue;
+            _processor.ReorderBuffer.Entries[source.Value].ValueProvided += OnSourceUpdated;
+            _subscriptions.Add(source.Value);
         }
         
         UpdateState();

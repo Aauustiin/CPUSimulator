@@ -21,7 +21,7 @@ public enum Opcode {
     HALT
 }
 
-public struct Instruction
+public readonly struct Instruction
 {
     public readonly Opcode Opcode;
     public readonly int? Destination;
@@ -42,9 +42,9 @@ public struct Instruction
 
 public struct ProgramSpecification
 {
-    public Instruction[] Instructions;
-    public int[] InitialMemory;
-    public ProcessorMode InitialProcessorMode;
+    public readonly Instruction[] Instructions;
+    public readonly int[] InitialMemory;
+    public readonly ProcessorMode InitialProcessorMode;
 
     public ProgramSpecification(Instruction[] instructions, int[] initialMemory, ProcessorMode initialProcessorMode)
     {

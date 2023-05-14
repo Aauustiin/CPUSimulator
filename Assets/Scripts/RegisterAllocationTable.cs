@@ -2,8 +2,8 @@ using System.Linq;
 
 public class RegisterAllocationTable
 {
-    private int[] _table;
-    private Processor _processor;
+    private readonly int[] _table;
+    private readonly Processor _processor;
     
     public RegisterAllocationTable(int size, Processor processor)
     {

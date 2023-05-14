@@ -35,20 +35,22 @@ public class ReorderBuffer
         {
             if (Entries[_commitPointer].Opcode != Opcode.STORE)
                 _processor.Registers[Entries[_commitPointer].GetDestination().Value] = Entries[_commitPointer].GetValue().Value;
-            else _processor.Memory[Entries[_commitPointer].GetDestination().Value] = Entries[_commitPointer].GetValue().Value;
-            Entries[_commitPointer] = null;
+            else if (Entries[_commitPointer].GetDestination() != null) 
+                _processor.Memory[Entries[_commitPointer].GetDestination().Value] = Entries[_commitPointer].GetValue().Value;
+            Entries[_commitPointer].Free = true;
             _commitPointer = (_commitPointer + 1) % Entries.Length;
         }
     }
     
     public bool IsFull()
     {
-        return Entries.All(entry => entry != null);
+        return Entries.All(entry => entry.Free == false);
     }
 }
 
 public class ReorderBufferEntry
 {
+    public bool Free;
     private int? _destination;
     private int? _value;
     public int Id;
@@ -85,5 +87,6 @@ public class ReorderBufferEntry
         _destination = destination;
         _value = null;
         Id = id;
+        Free = true;
     }
 }
