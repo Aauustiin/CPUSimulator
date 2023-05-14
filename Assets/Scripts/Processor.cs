@@ -70,7 +70,9 @@ public class Processor
         Registers = new int[processorSpecification.NumPhysicalRegisters];
         RegisterAllocationTable = new RegisterAllocationTable(processorSpecification.NumArchitecturalRegisters, this);
 
-        BranchPredictionUnit = new NeverBranchUnit();
+        BranchPredictionUnit = processorSpecification.DynamicBranchPredictor
+            ? new DynamicBranchPredictor()
+            : new StaticBranchPredictor();
     }
 
     private void Process(ProgramSpecification programSpecification)
@@ -171,6 +173,7 @@ public struct ProcessorSpecification
     public int NumPhysicalRegisters;
     public int NumArchitecturalRegisters;
     public int ReorderBufferSize;
+    public bool DynamicBranchPredictor;
 
     public ProcessorSpecification(
         int numFetchUnits, 
@@ -181,7 +184,8 @@ public struct ProcessorSpecification
         int numReservationStations, 
         int numPhysicalRegisters,
         int numArchitecturalRegisters,
-        int reorderBufferSize)
+        int reorderBufferSize,
+        bool dynamicBranchPredictor)
     {
         NumFetchUnits = numFetchUnits;
         NumDecodeUnits = numDecodeUnits;
@@ -192,6 +196,7 @@ public struct ProcessorSpecification
         NumPhysicalRegisters = numPhysicalRegisters;
         NumArchitecturalRegisters = numArchitecturalRegisters;
         ReorderBufferSize = reorderBufferSize;
+        DynamicBranchPredictor = dynamicBranchPredictor;
     }
 }
 
