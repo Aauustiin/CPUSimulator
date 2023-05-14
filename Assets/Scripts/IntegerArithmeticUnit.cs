@@ -1,10 +1,13 @@
-using System.Linq;
+using System;
+using System.Collections.Generic;
 
 public class IntegerArithmeticUnit : IExecutionUnit
 {
     private readonly Processor _processor;
+    private ReservationStationData? _input;
+    private int _cyclesToWait;
     
-    public static readonly Opcode[] CompatibleOpcodes =
+    private static readonly Opcode[] CompatibleOpcodes =
     {
         Opcode.ADD,
         Opcode.ADDI,
@@ -13,60 +16,74 @@ public class IntegerArithmeticUnit : IExecutionUnit
         Opcode.MUL,
         Opcode.DIV,
         Opcode.MOD,
+        Opcode.COPY,
+        Opcode.COPYI
     };
-    
-    public IntegerArithmeticUnit(Processor processor)
+
+    public IEnumerable<Opcode> GetCompatibleOpcodes()
     {
-        _processor = processor;
+        return CompatibleOpcodes;
     }
     
     public void Execute()
     {
-        // Try and find an instruction that I can execute
-        var instruction = _processor.DecodeExecuteBuffer.Find(
-            ins => CompatibleOpcodes.Contains(ins.Opcode)
-        );
-        var validInstruction = true;
-            
-        switch (instruction.Opcode)
-        {
-            case Opcode.ADD:
-                _processor.Registers[instruction.Operands[0]] = _processor.Registers[instruction.Operands[1]] +
-                                                                _processor.Registers[instruction.Operands[2]];
-                break;
-            case Opcode.ADDI:
-                _processor.Registers[instruction.Operands[0]] = _processor.Registers[instruction.Operands[1]] +
-                                                                instruction.Operands[2];
-                break;
-            case Opcode.SUB:
-                _processor.Registers[instruction.Operands[0]] = _processor.Registers[instruction.Operands[1]] -
-                                                                _processor.Registers[instruction.Operands[2]];
-                break;
-            case Opcode.SUBI:
-                _processor.Registers[instruction.Operands[0]] = _processor.Registers[instruction.Operands[1]] -
-                                                                instruction.Operands[2];
-                break;
-            case Opcode.MUL:
-                _processor.Registers[instruction.Operands[0]] = _processor.Registers[instruction.Operands[1]] *
-                                                                _processor.Registers[instruction.Operands[2]];
-                break;
-            case Opcode.DIV:
-                _processor.Registers[instruction.Operands[0]] = _processor.Registers[instruction.Operands[1]] /
-                                                                _processor.Registers[instruction.Operands[2]];
-                break;
-            case Opcode.MOD:
-                _processor.Registers[instruction.Operands[0]] = _processor.Registers[instruction.Operands[1]] %
-                                                                _processor.Registers[instruction.Operands[2]];
-                break;
-            default:
-                validInstruction = false;
-                break;
-        }
+        if (_input == null) return;
 
-        if (validInstruction)
+        // Wait the right number of cycles depending on what your instruction is.
+        if (_cyclesToWait > 0)
         {
-            _processor.InstructionsExecuted++;
-            _processor.DecodeExecuteBuffer.Remove(instruction);
+            _cyclesToWait--;
+            return;
         }
+        
+        // Do the calculation on your input.
+        var result = _input.Value.Opcode switch
+        {
+            Opcode.ADD => _input.Value.SourceValues[0] + _input.Value.SourceValues[1],
+            Opcode.ADDI => _input.Value.SourceValues[0] + _input.Value.SourceValues[1],
+            Opcode.SUB => _input.Value.SourceValues[0] - _input.Value.SourceValues[1],
+            Opcode.SUBI => _input.Value.SourceValues[0] + _input.Value.SourceValues[1],
+            Opcode.MUL => _input.Value.SourceValues[0] * _input.Value.SourceValues[1],
+            Opcode.DIV => _input.Value.SourceValues[0] / _input.Value.SourceValues[1],
+            Opcode.MOD => _input.Value.SourceValues[0] % _input.Value.SourceValues[1],
+            Opcode.COPY => _input.Value.SourceValues[0],
+            Opcode.COPYI => _input.Value.SourceValues[0],
+            _ => throw new ArgumentOutOfRangeException()
+        };
+
+        // Update reorder buffer entry value.
+        _processor.ReorderBuffer.Update(_input.Value.FetchNum, result, null);
+        
+        // Clear input.
+        _input = null;
+    }
+
+    public void SetInput(ReservationStationData data)
+    {
+        _input = data;
+
+        _cyclesToWait = data.Opcode switch
+        {
+            Opcode.ADD => 0,
+            Opcode.ADDI => 0,
+            Opcode.SUB => 0,
+            Opcode.SUBI => 0,
+            Opcode.MUL => 3,
+            Opcode.DIV => 4,
+            Opcode.MOD => 4,
+            Opcode.COPY => 0,
+            Opcode.COPYI => 0,
+            _ => throw new ArgumentOutOfRangeException()
+        };
+    }
+    
+    public bool IsFree()
+    {
+        return _input == null;
+    }
+
+    public IntegerArithmeticUnit(Processor processor)
+    {
+        _processor = processor;
     }
 }

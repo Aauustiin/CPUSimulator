@@ -25,8 +25,9 @@ public class ReorderBuffer
     }
     
     // Update a given entry with a new value and/or destination.
-    public void Update(int entryNum, int? value, int? destination)
+    public void Update(int fetchNum, int? value, int? destination)
     {
+        var entryNum = Array.FindIndex(Entries, entry => entry.FetchNum == fetchNum);
         // Update Value
         if (value != null) Entries[entryNum].SetValue(value.Value);
         if (destination != null) Entries[entryNum].SetDestination(destination.Value);
@@ -51,6 +52,7 @@ public class ReorderBuffer
 public class ReorderBufferEntry
 {
     public bool Free;
+    public int FetchNum;
     private int? _destination;
     private int? _value;
     public int Id;
@@ -82,8 +84,9 @@ public class ReorderBufferEntry
         return _destination;
     }
     
-    public ReorderBufferEntry(int destination, int value, Opcode opcode, int id)
+    public ReorderBufferEntry(int destination, int value, Opcode opcode, int id, int fetchNum)
     {
+        FetchNum = fetchNum;
         _destination = destination;
         _value = null;
         Id = id;

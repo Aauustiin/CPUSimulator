@@ -1,12 +1,11 @@
-using System;
-using System.Linq;
-using UnityEngine;
+using System.Collections.Generic;
 
 public class BranchUnit : IExecutionUnit
 {
+    private ReservationStationData? _input;
     private readonly Processor _processor;
     
-    public static readonly Opcode[] CompatibleOpcodes =
+    private static readonly Opcode[] CompatibleOpcodes =
     {
         Opcode.BRANCHE,
         Opcode.BRANCHG,
@@ -16,64 +15,28 @@ public class BranchUnit : IExecutionUnit
         Opcode.HALT,
     };
     
+    public IEnumerable<Opcode> GetCompatibleOpcodes()
+    {
+        return CompatibleOpcodes;
+    }
+
+    public void Execute()
+    {
+        // Do execution stuff!
+    }
+    
+    public void SetInput(ReservationStationData data)
+    {
+        _input = data;
+    }
+    
+    public bool IsFree()
+    {
+        return _input == null;
+    }
+    
     public BranchUnit(Processor processor)
     {
         _processor = processor;
-    }
-    
-    public void Execute()
-    {
-        // Try and find an instruction that I can execute
-        var instruction = _processor.DecodeExecuteBuffer.Find(
-            ins => CompatibleOpcodes.Contains(ins.Opcode)
-        );
-        bool validInstruction = true;
-
-        switch (instruction.Opcode)
-        {
-            case Opcode.BRANCHE:
-                if (_processor.Registers[instruction.Operands[0]] == _processor.Registers[instruction.Operands[1]])
-                {
-                    _processor.ProgramCounter = instruction.Operands[2];
-                    _processor.TriggerFlush();
-                }
-                break;
-            case Opcode.BRANCHG:
-                if (_processor.Registers[instruction.Operands[0]] > _processor.Registers[instruction.Operands[1]])
-                {
-                    _processor.ProgramCounter = instruction.Operands[2];
-                    _processor.TriggerFlush();
-                }
-                break;
-            case Opcode.BRANCHGE:
-                if (_processor.Registers[instruction.Operands[0]] >= _processor.Registers[instruction.Operands[1]])
-                {
-                    _processor.ProgramCounter = instruction.Operands[2];
-                    _processor.TriggerFlush();
-                }
-                break;
-            case Opcode.JUMP:
-                _processor.ProgramCounter = instruction.Operands[0];
-                _processor.TriggerFlush();
-                break;
-            case Opcode.BREAK:
-                if (_processor.ProcessorMode == ProcessorMode.DEBUGC)
-                {
-                    _processor.ProcessorMode = ProcessorMode.DEBUGS;
-                }
-                break;
-            case Opcode.HALT:
-                _processor.Halt();
-                break;
-            default:
-                validInstruction = false;
-                break;
-        }
-
-        if (validInstruction)
-        {
-            _processor.InstructionsExecuted++;
-            _processor.DecodeExecuteBuffer.Remove(instruction);
-        }
     }
 }

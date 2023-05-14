@@ -1,8 +1,10 @@
+using System.Collections.Generic;
+
 public interface IExecutionUnit
 {
     public void Execute();
 
-    public Opcode[] GetCompatibleOpcodes();
+    public IEnumerable<Opcode> GetCompatibleOpcodes();
 
     public bool IsFree();
 

@@ -1,59 +1,67 @@
 using System;
-using System.Linq;
-using UnityEngine;
+using System.Collections.Generic;
 
 public class LoadStoreUnit : IExecutionUnit
 {
+    private ReservationStationData? _input;
     private readonly Processor _processor;
+    private int _cyclesToWait;
 
-    public static readonly Opcode[] CompatibleOpcodes =
+    private static readonly Opcode[] CompatibleOpcodes =
     {
-        Opcode.COPY,
-        Opcode.COPYI,
         Opcode.LOAD,
         Opcode.LOADI,
         Opcode.STORE,
     };
     
+    public IEnumerable<Opcode> GetCompatibleOpcodes()
+    {
+        return CompatibleOpcodes;
+    }
+
+    public void Execute()
+    {
+        if (_input == null) return;
+
+        if (_cyclesToWait > 0)
+        {
+            _cyclesToWait--;
+            return;
+        }
+        
+        switch(_input.Value.Opcode)
+        {
+            case Opcode.LOAD:
+                _processor.ReorderBuffer.Update(_input.Value.FetchNum, 
+                    _processor.Memory[_input.Value.SourceValues[0].Value],
+                    null);
+                break;
+            case Opcode.LOADI:
+                _processor.ReorderBuffer.Update(_input.Value.FetchNum, 
+                    _processor.Memory[_input.Value.SourceValues[0].Value],
+                    null);
+                break;
+            case Opcode.STORE:
+                _processor.ReorderBuffer.Update(_input.Value.FetchNum, _input.Value.SourceValues[0], null);
+                break;
+            default:
+                throw new ArgumentOutOfRangeException();
+        }
+    }
+    
+    public void SetInput(ReservationStationData data)
+    {
+        _input = data;
+        _cyclesToWait = 10;
+    }
+    
+    public bool IsFree()
+    {
+        return _input == null;
+    }
+    
     public LoadStoreUnit(Processor processor)
     {
         _processor = processor;
-    }
-    
-    public void Execute()
-    {
-        // Try and find an instruction that I can execute
-        var instruction = _processor.DecodeExecuteBuffer.Find(
-            ins => CompatibleOpcodes.Contains(ins.Opcode)
-        );
-        bool validInstruction = true;
-
-        switch (instruction.Opcode)
-        {
-            case Opcode.COPY:
-                _processor.Registers[instruction.Operands[0]] = _processor.Registers[instruction.Operands[1]];
-                break;
-            case Opcode.COPYI:
-                _processor.Registers[instruction.Operands[0]] = instruction.Operands[1];
-                break;
-            case Opcode.LOAD:
-                _processor.Registers[instruction.Operands[0]] = _processor.Memory[_processor.Registers[instruction.Operands[1]]];
-                break;
-            case Opcode.LOADI:
-                _processor.Registers[instruction.Operands[0]] = _processor.Memory[instruction.Operands[1]];
-                break;
-            case Opcode.STORE:
-                _processor.Memory[_processor.Registers[instruction.Operands[0]]] = _processor.Registers[instruction.Operands[1]];
-                break;
-            default:
-                validInstruction = false;
-                break;
-        }
-
-        if (validInstruction)
-        {
-            _processor.InstructionsExecuted++;
-            _processor.DecodeExecuteBuffer.Remove(instruction);
-        }
     }
 }

@@ -4,10 +4,10 @@ using System.Linq;
 
 public class ReservationStation
 {
-    public ReservationStationData? ReservationStationData;
+    private ReservationStationData? _reservationStationData;
     private readonly Processor _processor;
     private ReservationStationState _state;
-    private List<int> _subscriptions;
+    private readonly List<int> _subscriptions;
 
     public ReservationStation(int id, Processor processor)
     {
@@ -24,7 +24,7 @@ public class ReservationStation
     
     public void SetReservationStationData(ReservationStationData reservationStationData)
     {
-        ReservationStationData = reservationStationData;
+        _reservationStationData = reservationStationData;
         
         foreach (var source in reservationStationData.Sources)
         {
@@ -44,9 +44,9 @@ public class ReservationStation
         var robEntry = _processor.ReorderBuffer.Entries[source];
         var robEntryValue = robEntry.GetValue();
 
-        var sourceIndex = Array.IndexOf(ReservationStationData.Value.Sources, source);
-        ReservationStationData.Value.Sources[sourceIndex] = null;
-        ReservationStationData.Value.SourceValues[sourceIndex] = robEntryValue;
+        var sourceIndex = Array.IndexOf(_reservationStationData.Value.Sources, source);
+        _reservationStationData.Value.Sources[sourceIndex] = null;
+        _reservationStationData.Value.SourceValues[sourceIndex] = robEntryValue;
         
         UpdateState();
     }
@@ -54,16 +54,16 @@ public class ReservationStation
     public void Issue()
     {
         var executionUnit = Array.Find(_processor.ExecutionUnits,
-            unit => unit.IsFree() & unit.GetCompatibleOpcodes().Contains(ReservationStationData.Value.Opcode));
-        executionUnit.SetInput(ReservationStationData.Value);
+            unit => unit.IsFree() & unit.GetCompatibleOpcodes().Contains(_reservationStationData.Value.Opcode));
+        executionUnit.SetInput(_reservationStationData.Value);
         Clear();
         
     }
     
     private void UpdateState()
     {
-        if (ReservationStationData == null) _state = ReservationStationState.FREE;
-        else if (ReservationStationData.Value.SourceValues.All(value => value != null))
+        if (_reservationStationData == null) _state = ReservationStationState.FREE;
+        else if (_reservationStationData.Value.SourceValues.All(value => value != null))
             _state = ReservationStationState.READY;
         else _state = ReservationStationState.WAITING;
     }
@@ -75,7 +75,7 @@ public class ReservationStation
 
     private void OnBranchMispredict(int fetchNum)
     {
-        if (!((ReservationStationData != null) & (ReservationStationData.Value.FetchNum > fetchNum))) return;
+        if (!((_reservationStationData != null) & (_reservationStationData.Value.FetchNum > fetchNum))) return;
 
         Clear();
     }
@@ -87,7 +87,7 @@ public class ReservationStation
             _processor.ReorderBuffer.Entries[entry].ValueProvided -= OnSourceUpdated;
         }
         _subscriptions.Clear();
-        ReservationStationData = null;
+        _reservationStationData = null;
         _state = ReservationStationState.FREE;
     }
 }
@@ -95,7 +95,7 @@ public class ReservationStation
 public struct ReservationStationData
 {
     public Opcode Opcode;
-    public int? DestinationRegister;
+    public int? DestinationRegister; // Do we need this? Reorder buffer keeps track of this info right?
     public int?[] Sources;
     public int?[] SourceValues;
     public int FetchNum;
