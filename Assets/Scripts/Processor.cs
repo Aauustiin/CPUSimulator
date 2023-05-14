@@ -73,14 +73,15 @@ public class Processor
         BranchPredictionUnit = processorSpecification.DynamicBranchPredictor
             ? new DynamicBranchPredictor()
             : new StaticBranchPredictor();
+
+        ProcessorMode = processorSpecification.InitialProcessorMode;
     }
 
     private void Process(ProgramSpecification programSpecification)
     {
         Instructions = programSpecification.Instructions;
         Memory = programSpecification.InitialMemory;
-        ProcessorMode = programSpecification.InitialProcessorMode;
-        
+
         while (!_finished)
         {
             // Step 1: Process the current data.
@@ -162,6 +163,7 @@ public struct ProcessorSpecification
     public int NumArchitecturalRegisters;
     public int ReorderBufferSize;
     public bool DynamicBranchPredictor;
+    public ProcessorMode InitialProcessorMode;
 
     public ProcessorSpecification(
         int numFetchUnits, 
@@ -173,7 +175,8 @@ public struct ProcessorSpecification
         int numPhysicalRegisters,
         int numArchitecturalRegisters,
         int reorderBufferSize,
-        bool dynamicBranchPredictor)
+        bool dynamicBranchPredictor,
+        ProcessorMode initialProcessorMode)
     {
         NumFetchUnits = numFetchUnits;
         NumDecodeUnits = numDecodeUnits;
@@ -185,6 +188,7 @@ public struct ProcessorSpecification
         NumArchitecturalRegisters = numArchitecturalRegisters;
         ReorderBufferSize = reorderBufferSize;
         DynamicBranchPredictor = dynamicBranchPredictor;
+        InitialProcessorMode = initialProcessorMode;
     }
 }
 

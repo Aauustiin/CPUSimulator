@@ -48,12 +48,40 @@ public static class Parsing
             {
                 operands.Add(int.Parse(line[i]));
             }
-            program.Add(new Instruction(opcode, operands));
+
+            var operandInformation = SeparateOperands(opcode, operands);
+            program.Add(new Instruction(opcode, operandInformation.Item1, operandInformation.Item2));
         }
-        
-        program.Add(new Instruction(Opcode.HALT, new List<int>()));
+
+        program.Add(new Instruction(Opcode.HALT, null, new List<int>()));
         
         
         return program.ToArray();
+    }
+
+    private static (int?, List<int>) SeparateOperands(Opcode opcode, List<int> operands)
+    {
+        return opcode switch
+        {
+            Opcode.ADD => (operands[0], operands.Skip(1).ToList()),
+            Opcode.ADDI => (operands[0], operands.Skip(1).ToList()),
+            Opcode.SUB => (operands[0], operands.Skip(1).ToList()),
+            Opcode.SUBI => (operands[0], operands.Skip(1).ToList()),
+            Opcode.MUL => (operands[0], operands.Skip(1).ToList()),
+            Opcode.DIV => (operands[0], operands.Skip(1).ToList()),
+            Opcode.MOD => (operands[0], operands.Skip(1).ToList()),
+            Opcode.COPY => (operands[0], operands.Skip(1).ToList()),
+            Opcode.COPYI => (operands[0], operands.Skip(1).ToList()),
+            Opcode.LOAD => (operands[0], operands.Skip(1).ToList()),
+            Opcode.LOADI => (operands[0], operands.Skip(1).ToList()),
+            Opcode.STORE => (null, operands),
+            Opcode.BRANCHE => (null, operands),
+            Opcode.BRANCHG => (null, operands),
+            Opcode.BRANCHGE => (null, operands),
+            Opcode.JUMP => (null, new List<int>()),
+            Opcode.BREAK => (null, new List<int>()),
+            Opcode.HALT => (null, new List<int>()),
+            _ => throw new ArgumentOutOfRangeException()
+        };
     }
 }

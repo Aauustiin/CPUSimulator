@@ -44,12 +44,10 @@ public struct ProgramSpecification
 {
     public readonly Instruction[] Instructions;
     public readonly int[] InitialMemory;
-    public readonly ProcessorMode InitialProcessorMode;
 
-    public ProgramSpecification(Instruction[] instructions, int[] initialMemory, ProcessorMode initialProcessorMode)
+    public ProgramSpecification(Instruction[] instructions, int[] initialMemory)
     {
         Instructions = instructions;
         InitialMemory = initialMemory;
-        InitialProcessorMode = initialProcessorMode;
     }
 }
