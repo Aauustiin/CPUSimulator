@@ -42,7 +42,7 @@ public class InitialisationForm : MonoBehaviour
             _ => throw new ArgumentOutOfRangeException()
         };
         // This will have to be different things depending on the demonstration.
-        var memory = new int[] { 1, 2, 3, 4, 5, 6 };
+        var memory = new int[] { 5, 2, 3, 4, 5, 6 };
         var program = Parsing.LoadProgram(filePath);
         return new ProgramSpecification(program, memory);
     }
