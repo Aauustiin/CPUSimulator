@@ -52,8 +52,6 @@ public static class Parsing
             var operandInformation = SeparateOperands(opcode, operands);
             program.Add(new Instruction(opcode, operandInformation.Item1, operandInformation.Item2));
         }
-
-        program.Add(new Instruction(Opcode.HALT, null, new List<int>()));
         
         
         return program.ToArray();
@@ -79,8 +77,6 @@ public static class Parsing
             Opcode.BRANCHG => (null, operands),
             Opcode.BRANCHGE => (null, operands),
             Opcode.JUMP => (null, new List<int>()),
-            Opcode.BREAK => (null, new List<int>()),
-            Opcode.HALT => (null, new List<int>()),
             _ => throw new ArgumentOutOfRangeException()
         };
     }

@@ -17,8 +17,6 @@ public enum Opcode {
     BRANCHG,
     BRANCHGE,
     JUMP,
-    BREAK,
-    HALT
 }
 
 public readonly struct Instruction

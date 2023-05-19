@@ -9,7 +9,7 @@ public class ReservationStation
     private ReservationStationState _state;
     private readonly List<int> _subscriptions;
 
-    public ReservationStation(int id, Processor processor)
+    public ReservationStation(Processor processor)
     {
         _processor = processor;
         _state = ReservationStationState.FREE;
@@ -99,14 +99,18 @@ public struct ReservationStationData
     public int?[] Sources;
     public int?[] SourceValues;
     public int FetchNum;
+    public bool? Prediction;
+    public int ProgramCounter;
 
-    public ReservationStationData(Opcode opcode, int? destinationRegister, int?[] sources, int?[] sourceValues, int fetchNum)
+    public ReservationStationData(Opcode opcode, int? destinationRegister, int?[] sources, int?[] sourceValues, int fetchNum, bool? prediction, int programCounter)
     {
         Opcode = opcode;
         DestinationRegister = destinationRegister;
         Sources = sources;
         SourceValues = sourceValues;
         FetchNum = fetchNum;
+        Prediction = prediction;
+        ProgramCounter = programCounter;
     }
 }
 

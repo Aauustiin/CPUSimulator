@@ -67,6 +67,11 @@ public class ReorderBuffer
         return Entries.All(entry => entry.Free == false);
     }
 
+    public bool IsEmpty()
+    {
+        return Entries.All(entry => entry.Free);
+    }
+
     private void OnBranchMispredict(int fetchNum)
     {
         var remainingEntries = Entries.Where(entry => entry.FetchNum < fetchNum).ToArray();

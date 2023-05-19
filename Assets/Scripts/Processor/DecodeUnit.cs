@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 public class DecodeUnit
 {
-    public (Instruction, int)? Input;
+    public FetchData? Input;
     private readonly Processor _processor;
 
     public DecodeUnit(Processor processor)
@@ -23,7 +23,7 @@ public class DecodeUnit
         // If we haven't been given anything to decode, or we haven't been able to give our output to a reservation station, do nothing.
         if (Input == null) return;
         
-        var instruction = Input.Value.Item1;
+        var instruction = Input.Value.Instruction;
         var convertedInstruction = _processor.RegisterAllocationTable.ConvertInstruction(instruction);
         
         // If there is no available destination register, then stall.
@@ -34,7 +34,7 @@ public class DecodeUnit
         if ((reservationStation == null) | _processor.ReorderBuffer.IsFull()) return;
         
         // Make a ROB entry.
-        _processor.ReorderBuffer.Issue(instruction.Opcode, Input.Value.Item2, convertedInstruction.Value.Destination, GetResultValue(convertedInstruction.Value));
+        _processor.ReorderBuffer.Issue(instruction.Opcode, Input.Value.FetchNum, convertedInstruction.Value.Destination, GetResultValue(convertedInstruction.Value));
         // Make a reservation station entry.
         var sources = new List<int?>();
         var sourceValues = new List<int?>();
@@ -45,7 +45,7 @@ public class DecodeUnit
             sourceValues.Add(sourceInformation.Item2);
         }
         var reservationStationData = new ReservationStationData(instruction.Opcode, instruction.Destination, sources.ToArray(),
-            sourceValues.ToArray(), Input.Value.Item2);
+            sourceValues.ToArray(), Input.Value.FetchNum, Input.Value.Prediction, Input.Value.ProgramCounter);
         _processor.ReservationStations[reservationStation.Value].SetReservationStationData(reservationStationData);
         
         Input = null;
@@ -83,8 +83,6 @@ public class DecodeUnit
             Opcode.BRANCHG => null,
             Opcode.BRANCHGE => null,
             Opcode.JUMP => null,
-            Opcode.BREAK => null,
-            Opcode.HALT => null,
             _ => throw new ArgumentOutOfRangeException()
         };
     }
@@ -98,6 +96,6 @@ public class DecodeUnit
     {
         if (Input == null) return;
 
-        if (Input.Value.Item2 > fetchNum) Input = null;
+        if (Input.Value.FetchNum > fetchNum) Input = null;
     }
 }

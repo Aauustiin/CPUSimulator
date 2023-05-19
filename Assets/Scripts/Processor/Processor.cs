@@ -62,7 +62,7 @@ public class Processor
         ReservationStations = new ReservationStation[processorSpecification.NumReservationStations];
         for (var i = 0; i < processorSpecification.NumReservationStations; i++)
         {
-            ReservationStations[i] = new ReservationStation(i, this);
+            ReservationStations[i] = new ReservationStation(this);
         }
 
         ReorderBuffer = new ReorderBuffer(processorSpecification.ReorderBufferSize, this);
@@ -117,6 +117,18 @@ public class Processor
             fullFetchUnits.Zip(emptyDecodeUnits, (fetchUnit, decodeUnit) => decodeUnit.Input = fetchUnit.Pop());
             
             _cycle++;
+            
+            // If everything is empty, and the PC is at the end, you're done.
+            if (_fetchUnits.All(fetchUnit => !fetchUnit.HasOutput()) &
+                _decodeUnits.All(decodeUnit => decodeUnit.IsFree()) &
+                ExecutionUnits.All(executionUnit => executionUnit.IsFree()) &
+                ReservationStations.All(reservationStation =>
+                    reservationStation.GetState() == ReservationStationState.FREE) &
+                ReorderBuffer.IsEmpty() &
+                (ProgramCounter >= Instructions.Length))
+            {
+                _finished = true;
+            }
         }
     }
 
@@ -153,17 +165,17 @@ public class Processor
 
 public struct ProcessorSpecification
 {
-    public int NumFetchUnits;
-    public int NumDecodeUnits;
-    public int NumIntegerArithmeticUnits;
-    public int NumBranchUnits;
-    public int NumLoadStoreUnits;
-    public int NumReservationStations;
-    public int NumPhysicalRegisters;
-    public int NumArchitecturalRegisters;
-    public int ReorderBufferSize;
-    public bool DynamicBranchPredictor;
-    public ProcessorMode InitialProcessorMode;
+    public readonly int NumFetchUnits;
+    public readonly int NumDecodeUnits;
+    public readonly int NumIntegerArithmeticUnits;
+    public readonly int NumBranchUnits;
+    public readonly int NumLoadStoreUnits;
+    public readonly int NumReservationStations;
+    public readonly int NumPhysicalRegisters;
+    public readonly int NumArchitecturalRegisters;
+    public readonly int ReorderBufferSize;
+    public readonly bool DynamicBranchPredictor;
+    public readonly ProcessorMode InitialProcessorMode;
 
     public ProcessorSpecification(
         int numFetchUnits, 
