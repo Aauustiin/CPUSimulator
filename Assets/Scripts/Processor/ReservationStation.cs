@@ -53,6 +53,11 @@ public class ReservationStation
 
     public void Issue()
     {
+        if (((_reservationStationData.Value.Opcode == Opcode.LOAD) |
+            (_reservationStationData.Value.Opcode == Opcode.LOADI)) &
+            _processor.ReorderBuffer.Entries.Any(entry => (entry.Opcode == Opcode.STORE) & (entry.FetchNum < _reservationStationData.Value.FetchNum)))
+            return;
+
         var executionUnit = Array.Find(_processor.ExecutionUnits,
             unit => unit.IsFree() & unit.GetCompatibleOpcodes().Contains(_reservationStationData.Value.Opcode));
         executionUnit.SetInput(_reservationStationData.Value);

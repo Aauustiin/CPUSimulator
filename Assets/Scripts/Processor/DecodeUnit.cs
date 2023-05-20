@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 public class DecodeUnit
 {
@@ -46,6 +47,24 @@ public class DecodeUnit
         }
         var reservationStationData = new ReservationStationData(instruction.Opcode, instruction.Destination, sources.ToArray(),
             sourceValues.ToArray(), Input.Value.FetchNum, Input.Value.Prediction, Input.Value.ProgramCounter);
+
+        // LOAD / STORE STUFF
+
+        var knownSource = false;
+
+        if (instruction.Opcode == Opcode.LOADI) knownSource = true;
+        else if (instruction.Opcode == Opcode.LOAD) knownSource = reservationStationData.SourceValues[0] != null;
+
+        if (knownSource)
+        {
+            if (_processor.ReorderBuffer.Entries.Any(entry => entry.Opcode == Opcode.STORE))
+            {
+                
+            }
+        }
+        
+        // END OF LOAD / STORE STUFF
+        
         _processor.ReservationStations[reservationStation.Value].SetReservationStationData(reservationStationData);
         
         Input = null;
