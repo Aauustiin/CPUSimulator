@@ -28,7 +28,7 @@ public class InitialisationForm : MonoBehaviour
         var programSpecification = GetProgramSpecification();
         
         var processor = new Processor(processorSpecification);
-        processor.Process(programSpecification);
+        StartCoroutine(processor.Process(programSpecification));
         
         // Will have to set monitoring UI stuff to be active.
         gameObject.SetActive(false);
@@ -38,7 +38,7 @@ public class InitialisationForm : MonoBehaviour
     {
         var filePath = programDropdown.captionText.text switch
         {
-            "Sum" => "Assets\\Scripts\\Assembly\\Test\\Sum.txt",
+            "Sum" => "Assets\\Scripts\\Assembly\\Tests\\Sum.txt",
             _ => throw new ArgumentOutOfRangeException()
         };
         // This will have to be different things depending on the demonstration.

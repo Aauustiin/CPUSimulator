@@ -9,4 +9,9 @@ public class StaticBranchPredictor : IBranchPredictionUnit
     {
         // Do nothing
     }
+
+    public override string ToString()
+    {
+        return "N/A";
+    }
 }

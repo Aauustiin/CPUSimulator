@@ -95,6 +95,11 @@ public class ReservationStation
         _reservationStationData = null;
         _state = ReservationStationState.FREE;
     }
+
+    public override string ToString()
+    {
+        return _reservationStationData + ", State: " + _state;
+    }
 }
 
 public struct ReservationStationData
@@ -116,6 +121,13 @@ public struct ReservationStationData
         FetchNum = fetchNum;
         Prediction = prediction;
         ProgramCounter = programCounter;
+    }
+
+    public override string ToString()
+    {
+        return Opcode + ", Destination: " + DestinationRegister + ", Sources: " + String.Join(' ', Sources) +
+               ", SourceValues: " + String.Join(' ', SourceValues) + ", Fetch Number: " + FetchNum + ", Prediction: " +
+               Prediction + ", Program Counter: " + ProgramCounter;
     }
 }
 

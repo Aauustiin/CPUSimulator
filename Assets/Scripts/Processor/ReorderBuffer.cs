@@ -12,8 +12,7 @@ public class ReorderBuffer
         Entries = new ReorderBufferEntry[size];
         for (var i = 0; i < size; i++)
         {
-            Entries[i].Id = i;
-            Entries[i].Free = true;
+            Entries[i] = new ReorderBufferEntry(i);
         }
 
         _commitPointer = -1;
@@ -77,12 +76,16 @@ public class ReorderBuffer
         var remainingEntries = Entries.Where(entry => entry.FetchNum < fetchNum).ToArray();
         for (var i = 0; i < Entries.Length; i++)
         {
-            Entries[i] = i < remainingEntries.Length ? remainingEntries[i] : new ReorderBufferEntry();
-            Entries[i].Id = i;
+            Entries[i] = i < remainingEntries.Length ? remainingEntries[i] : new ReorderBufferEntry(i);
         }
 
         _commitPointer = remainingEntries.Length - 1;
         _issuePointer = Entries.Length - 1;
+    }
+
+    public override string ToString()
+    {
+        return "Issue: " + _issuePointer + ", Commit: " + _commitPointer + " " + String.Join(' ', Entries.ToString());
     }
 }
 
@@ -101,6 +104,12 @@ public class ReorderBufferEntry
     
     public event System.Action<int> DestinationProvided;
 
+    public ReorderBufferEntry(int id)
+    {
+        Id = id;
+        Free = true;
+    }
+    
     public void Initialise(Opcode  opcode, int fetchNum, int? destination, int? value)
     {
         Free = false;
@@ -131,5 +140,11 @@ public class ReorderBufferEntry
     public int? GetDestination()
     {
         return _destination;
+    }
+
+    public override string ToString()
+    {
+        return "ID: " + Id + ", Free: " + Free + ", Opcode: " + Opcode + ", Destination: " + _destination +
+               ", Value: " + _value + ", Fetch Number: " + FetchNum;
     }
 }

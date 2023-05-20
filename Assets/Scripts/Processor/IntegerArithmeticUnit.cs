@@ -86,4 +86,9 @@ public class IntegerArithmeticUnit : IExecutionUnit
     {
         _processor = processor;
     }
+
+    public override string ToString()
+    {
+        return _input + ", Cycles to Wait: " + _cyclesToWait;
+    }
 }

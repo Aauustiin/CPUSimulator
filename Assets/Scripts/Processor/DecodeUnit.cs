@@ -117,4 +117,9 @@ public class DecodeUnit
 
         if (Input.Value.FetchNum > fetchNum) Input = null;
     }
+
+    public override string ToString()
+    {
+        return Input.ToString();
+    }
 }

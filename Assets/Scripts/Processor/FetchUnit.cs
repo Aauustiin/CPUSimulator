@@ -66,6 +66,11 @@ public class FetchUnit
             _output = null;
         }
     }
+
+    public override string ToString()
+    {
+        return _output.ToString();
+    }
 }
 
 public struct FetchData
@@ -89,5 +94,11 @@ public struct FetchData
         ProgramCounter = programCounter;
         FetchNum = fetchNum;
         Prediction = prediction;
+    }
+
+    public override string ToString()
+    {
+        return "Instruction: " + Instruction + ", PC: " + ProgramCounter + ", FetchNum: " + FetchNum +
+            ", Prediction: " + Prediction;
     }
 }

@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 
 public class RegisterAllocationTable
@@ -7,7 +8,7 @@ public class RegisterAllocationTable
     
     public RegisterAllocationTable(int size, Processor processor)
     {
-        _table = new int[] { };
+        _table = new int[size];
         for (var i = 0; i < size; i++)
         {
             _table[i] = i;
@@ -24,5 +25,10 @@ public class RegisterAllocationTable
         return new Instruction(instruction.Opcode, 
             instruction.Destination == null ? null : potentialNewDestination,
             instruction.Sources.Select(source => _table[source]).ToList());
+    }
+
+    public override string ToString()
+    {
+        return String.Join(' ', _table);
     }
 }

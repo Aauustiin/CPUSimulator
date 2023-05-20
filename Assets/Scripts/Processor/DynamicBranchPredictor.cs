@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 
 public class DynamicBranchPredictor : IBranchPredictionUnit
 {
@@ -57,6 +58,20 @@ public class DynamicBranchPredictor : IBranchPredictionUnit
             PredictorState.WEAK_NO => PredictorState.STRONG_NO,
             PredictorState.WEAK_YES => PredictorState.WEAK_NO,
             PredictorState.STRONG_YES => PredictorState.WEAK_YES,
+            _ => throw new ArgumentOutOfRangeException()
+        };
+    }
+
+    public override string ToString()
+    {
+        if (_state == null) return "Gathering Data";
+        
+        return _state.Value switch
+        {
+            PredictorState.STRONG_NO => "Strongly Not Taken",
+            PredictorState.WEAK_NO => "Weakly Not Taken",
+            PredictorState.WEAK_YES => "Weakly Taken",
+            PredictorState.STRONG_YES => "Strongly Taken",
             _ => throw new ArgumentOutOfRangeException()
         };
     }

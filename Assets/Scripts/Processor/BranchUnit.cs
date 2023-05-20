@@ -60,4 +60,9 @@ public class BranchUnit : IExecutionUnit
     {
         _processor = processor;
     }
+
+    public override string ToString()
+    {
+        return _input.ToString();
+    }
 }
