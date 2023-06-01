@@ -124,9 +124,14 @@ public class Processor
         //Decode units will send their stuff to the reorder buffer and the reservation stations already.
 
         // Assign fetched instructions to free decode units.
-        var fullFetchUnits = _fetchUnits.Where(fetchUnit => fetchUnit.HasOutput());
-        var emptyDecodeUnits = _decodeUnits.Where(decodeUnit => decodeUnit.IsFree());
-        fullFetchUnits.Zip(emptyDecodeUnits, (fetchUnit, decodeUnit) => decodeUnit.Input = fetchUnit.Pop());
+        var fullFetchUnits = _fetchUnits.Where(fetchUnit => fetchUnit.HasOutput()).ToArray();
+        var emptyDecodeUnits = _decodeUnits.Where(decodeUnit => decodeUnit.IsFree()).ToArray();
+        var i = 0;
+        while ((i < fullFetchUnits.Count()) & (i < emptyDecodeUnits.Count()))
+        {
+            emptyDecodeUnits[i].Input = fullFetchUnits[i].Pop();
+            i++;
+        }
 
         if (ProcessorMode == ProcessorMode.DEBUGS)
         {
