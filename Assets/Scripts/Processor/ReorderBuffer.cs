@@ -31,7 +31,7 @@ public class ReorderBuffer
     public void Issue(Opcode opcode, int fetchNum, int? destination, int? value)
     {
         if (IsFull()) return; // Can't issue anything if we don't have space.
-        if (_commitPointer == -1) _commitPointer = _issuePointer;
+        if (_issuePointer == -1) _issuePointer = _commitPointer;
         Entries[_issuePointer].Initialise(opcode, fetchNum, destination, value);
         _issuePointer = (_issuePointer - 1) % Entries.Length;
     }

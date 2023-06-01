@@ -96,6 +96,43 @@ public class Processor
     {
         if (_finished) return;
         
+        // If everything is empty, and the PC is at the end, you're done.
+        if (_fetchUnits.All(fetchUnit => !fetchUnit.HasOutput()) &
+            _decodeUnits.All(decodeUnit => decodeUnit.IsFree()) &
+            ExecutionUnits.All(executionUnit => executionUnit.IsFree()) &
+            ReservationStations.All(reservationStation =>
+                reservationStation.GetState() == ReservationStationState.FREE) &
+            ReorderBuffer.IsEmpty() &
+            (ProgramCounter >= Instructions.Length))
+        {
+            _finished = true;
+            Debug.Log("Finished! " + String.Join(' ', Registers));
+        }
+
+        if (_cycle > 10000)
+        {
+            _finished = true;
+            Debug.Log("Finished! " + String.Join(' ', Registers));
+        }
+        
+        // Ready reservation stations will issue to free execution units.
+        foreach (var station in ReservationStations)
+        {
+            if (station.GetState() == ReservationStationState.READY) station.Issue();
+        }
+        
+        //Decode units will send their stuff to the reorder buffer and the reservation stations already.
+
+        // Assign fetched instructions to free decode units.
+        var fullFetchUnits = _fetchUnits.Where(fetchUnit => fetchUnit.HasOutput()).ToArray();
+        var emptyDecodeUnits = _decodeUnits.Where(decodeUnit => decodeUnit.IsFree()).ToArray();
+        var i = 0;
+        while ((i < fullFetchUnits.Count()) & (i < emptyDecodeUnits.Count()))
+        {
+            emptyDecodeUnits[i].Input = fullFetchUnits[i].Pop();
+            i++;
+        }
+        
         // Step 1: Process the current data.
 
         foreach (var fetchUnit in _fetchUnits)
@@ -111,26 +148,6 @@ public class Processor
         foreach (var executionUnit in ExecutionUnits)
         {
             executionUnit.Execute();
-        }
-
-        // Step 2: Assign new data.
-
-        // Ready reservation stations will issue to free execution units.
-        foreach (var station in ReservationStations)
-        {
-            if (station.GetState() == ReservationStationState.READY) station.Issue();
-        }
-
-        //Decode units will send their stuff to the reorder buffer and the reservation stations already.
-
-        // Assign fetched instructions to free decode units.
-        var fullFetchUnits = _fetchUnits.Where(fetchUnit => fetchUnit.HasOutput()).ToArray();
-        var emptyDecodeUnits = _decodeUnits.Where(decodeUnit => decodeUnit.IsFree()).ToArray();
-        var i = 0;
-        while ((i < fullFetchUnits.Count()) & (i < emptyDecodeUnits.Count()))
-        {
-            emptyDecodeUnits[i].Input = fullFetchUnits[i].Pop();
-            i++;
         }
 
         if (ProcessorMode == ProcessorMode.DEBUGS)
@@ -181,27 +198,7 @@ public class Processor
         }
         
         _cycle++;
-        
-        // If everything is empty, and the PC is at the end, you're done.
-        if (_fetchUnits.All(fetchUnit => !fetchUnit.HasOutput()) &
-            _decodeUnits.All(decodeUnit => decodeUnit.IsFree()) &
-            ExecutionUnits.All(executionUnit => executionUnit.IsFree()) &
-            ReservationStations.All(reservationStation =>
-                reservationStation.GetState() == ReservationStationState.FREE) &
-            ReorderBuffer.IsEmpty() &
-            (ProgramCounter >= Instructions.Length))
-        {
-            _finished = true;
-            
-            Debug.Log("Finished! " + String.Join(' ', Registers));
-        }
 
-        if (_cycle > 10000)
-        {
-            _finished = true;
-            Debug.Log("Finished! " + String.Join(' ', Registers));
-        }
-        
         if ((ProcessorMode == ProcessorMode.DEBUGC) | (ProcessorMode == ProcessorMode.RELEASE)) EventManager.TriggerTick();
     }
 
