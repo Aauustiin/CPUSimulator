@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -86,112 +85,119 @@ public class Processor
         EventManager.Tick -= OnTick;
     }
 
-    public IEnumerator Process(ProgramSpecification programSpecification)
+    public void Process(ProgramSpecification programSpecification)
     {
         Instructions = programSpecification.Instructions;
         Memory = programSpecification.InitialMemory;
+        EventManager.TriggerTick();
+    }
 
-        while (!_finished)
+    private void OnTick()
+    {
+        if (_finished) return;
+        
+        // Step 1: Process the current data.
+
+        foreach (var fetchUnit in _fetchUnits)
         {
-            // Step 1: Process the current data.
+            fetchUnit.Fetch();
+        }
 
+        foreach (var decodeUnit in _decodeUnits)
+        {
+            decodeUnit.Decode();
+        }
+
+        foreach (var executionUnit in ExecutionUnits)
+        {
+            executionUnit.Execute();
+        }
+
+        // Step 2: Assign new data.
+
+        // Ready reservation stations will issue to free execution units.
+        foreach (var station in ReservationStations)
+        {
+            if (station.GetState() == ReservationStationState.READY) station.Issue();
+        }
+
+        //Decode units will send their stuff to the reorder buffer and the reservation stations already.
+
+        // Assign fetched instructions to free decode units.
+        var fullFetchUnits = _fetchUnits.Where(fetchUnit => fetchUnit.HasOutput());
+        var emptyDecodeUnits = _decodeUnits.Where(decodeUnit => decodeUnit.IsFree());
+        fullFetchUnits.Zip(emptyDecodeUnits, (fetchUnit, decodeUnit) => decodeUnit.Input = fetchUnit.Pop());
+
+        if (ProcessorMode == ProcessorMode.DEBUGS)
+        {
+            Debug.Log("Cycle: " + _cycle);
+            
+            Debug.Log("FETCH UNITS");
             foreach (var fetchUnit in _fetchUnits)
             {
-                fetchUnit.Fetch();
+                Debug.Log(fetchUnit);
             }
 
+            Debug.Log("DECODE UNITS");
             foreach (var decodeUnit in _decodeUnits)
             {
-                decodeUnit.Decode();
+                Debug.Log(decodeUnit);
             }
 
+            Debug.Log("EXECUTION UNITS");
             foreach (var executionUnit in ExecutionUnits)
             {
-                executionUnit.Execute();
+                Debug.Log(executionUnit);
             }
 
-            // Step 2: Assign new data.
+            Debug.Log("BRANCH PREDICTION UNIT");
+            Debug.Log(BranchPredictionUnit.ToString());
 
-            // Ready reservation stations will issue to free execution units.
+            Debug.Log("RESERVATION STATIONS");
             foreach (var station in ReservationStations)
             {
-                if (station.GetState() == ReservationStationState.READY) station.Issue();
+                Debug.Log(station);
             }
 
-            //Decode units will send their stuff to the reorder buffer and the reservation stations already.
+            Debug.Log("REORDER BUFFER");
+            Debug.Log(ReorderBuffer);
 
-            // Assign fetched instructions to free decode units.
-            var fullFetchUnits = _fetchUnits.Where(fetchUnit => fetchUnit.HasOutput());
-            var emptyDecodeUnits = _decodeUnits.Where(decodeUnit => decodeUnit.IsFree());
-            fullFetchUnits.Zip(emptyDecodeUnits, (fetchUnit, decodeUnit) => decodeUnit.Input = fetchUnit.Pop());
+            Debug.Log("REGISTERS");
+            Debug.Log(String.Join(' ', Registers));
 
-            if (ProcessorMode == ProcessorMode.DEBUGS)
-            {
-                Debug.Log("Cycle: " + _cycle);
-                
-                Debug.Log("FETCH UNITS");
-                foreach (var fetchUnit in _fetchUnits)
-                {
-                    Debug.Log(fetchUnit);
-                }
+            Debug.Log("REGISTER ALLOCATION TABLE");
+            Debug.Log(RegisterAllocationTable);
 
-                Debug.Log("DECODE UNITS");
-                foreach (var decodeUnit in _decodeUnits)
-                {
-                    Debug.Log(decodeUnit);
-                }
+            Debug.Log("MEMORY");
+            Debug.Log(String.Join(' ', Memory));
 
-                Debug.Log("EXECUTION UNITS");
-                foreach (var executionUnit in ExecutionUnits)
-                {
-                    Debug.Log(executionUnit);
-                }
-
-                Debug.Log("BRANCH PREDICTION UNIT");
-                Debug.Log(BranchPredictionUnit.ToString());
-
-                Debug.Log("RESERVATION STATIONS");
-                foreach (var station in ReservationStations)
-                {
-                    Debug.Log(station);
-                }
-
-                Debug.Log("REORDER BUFFER");
-                Debug.Log(ReorderBuffer);
-
-                Debug.Log("REGISTERS");
-                Debug.Log(String.Join(' ', Registers));
-
-                Debug.Log("REGISTER ALLOCATION TABLE");
-                Debug.Log(RegisterAllocationTable);
-
-                Debug.Log("MEMORY");
-                Debug.Log(String.Join(' ', Memory));
-
-                Debug.Log("STATS");
-                Debug.Log("Program Counter: " + ProgramCounter + ", Fetch Counter: " + FetchCounter + ", Instructions Executed: " + InstructionsExecuted);
-                
-                yield return new WaitUntil(() => _tick);
-            }
-            
-            _cycle++;
-            
-            // If everything is empty, and the PC is at the end, you're done.
-            if (_fetchUnits.All(fetchUnit => !fetchUnit.HasOutput()) &
-                _decodeUnits.All(decodeUnit => decodeUnit.IsFree()) &
-                ExecutionUnits.All(executionUnit => executionUnit.IsFree()) &
-                ReservationStations.All(reservationStation =>
-                    reservationStation.GetState() == ReservationStationState.FREE) &
-                ReorderBuffer.IsEmpty() &
-                (ProgramCounter >= Instructions.Length))
-            {
-                _finished = true;
-            }
-
-            if (_cycle > 10000) _finished = true;
+            Debug.Log("STATS");
+            Debug.Log("Program Counter: " + ProgramCounter + ", Fetch Counter: " + FetchCounter + ", Instructions Executed: " + InstructionsExecuted);
         }
         
-        Debug.Log("Finished! " + String.Join(' ', Registers));
+        _cycle++;
+        
+        // If everything is empty, and the PC is at the end, you're done.
+        if (_fetchUnits.All(fetchUnit => !fetchUnit.HasOutput()) &
+            _decodeUnits.All(decodeUnit => decodeUnit.IsFree()) &
+            ExecutionUnits.All(executionUnit => executionUnit.IsFree()) &
+            ReservationStations.All(reservationStation =>
+                reservationStation.GetState() == ReservationStationState.FREE) &
+            ReorderBuffer.IsEmpty() &
+            (ProgramCounter >= Instructions.Length))
+        {
+            _finished = true;
+            
+            Debug.Log("Finished! " + String.Join(' ', Registers));
+        }
+
+        if (_cycle > 10000)
+        {
+            _finished = true;
+            Debug.Log("Finished! " + String.Join(' ', Registers));
+        }
+        
+        if ((ProcessorMode == ProcessorMode.DEBUGC) | (ProcessorMode == ProcessorMode.RELEASE)) EventManager.TriggerTick();
     }
 
     public event System.Action<int> BranchMispredict;
@@ -222,13 +228,6 @@ public class Processor
     {
         var result = Array.FindIndex(ReservationStations, station => station.GetState() == ReservationStationState.FREE);
         return result == -1 ? null : result;
-    }
-
-    private bool _tick = false;
-    
-    private void OnTick()
-    {
-        _tick = true;
     }
 }
 

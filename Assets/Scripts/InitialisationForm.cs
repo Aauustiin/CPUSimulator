@@ -28,7 +28,7 @@ public class InitialisationForm : MonoBehaviour
         var programSpecification = GetProgramSpecification();
         
         var processor = new Processor(processorSpecification);
-        StartCoroutine(processor.Process(programSpecification));
+        processor.Process(programSpecification);
         
         // Will have to set monitoring UI stuff to be active.
         gameObject.SetActive(false);
