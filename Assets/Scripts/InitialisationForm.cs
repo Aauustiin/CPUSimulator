@@ -51,9 +51,9 @@ public class InitialisationForm : MonoBehaviour
     {
         return choice switch
         {
-            "Release" => ProcessorMode.RELEASE,
-            "Debug Continuous" => ProcessorMode.DEBUGC,
-            "Debug Step-Through" => ProcessorMode.DEBUGS,
+            "RELEASE" => ProcessorMode.RELEASE,
+            "DEBUGC" => ProcessorMode.DEBUGC,
+            "DEBUGS" => ProcessorMode.DEBUGS,
             _ => throw new ArgumentOutOfRangeException()
         };
     }
