@@ -6,4 +6,11 @@ public static class EventManager
     {
         Tick?.Invoke();
     }
+
+    public static System.Action<TockInfo> Tock;
+
+    public static void TriggerTock(TockInfo info)
+    {
+        Tock?.Invoke(info);
+    }
 }

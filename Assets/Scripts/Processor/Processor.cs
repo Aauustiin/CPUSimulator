@@ -150,52 +150,23 @@ public class Processor
             executionUnit.Execute();
         }
 
-        if (ProcessorMode == ProcessorMode.DEBUGS)
-        {
-            Debug.Log("Cycle: " + _cycle);
+        var fetchUnitInfo = String.Join('\n', _fetchUnits.Select(unit => unit.ToString()));
+        var decodeUnitInfo = String.Join('\n', _decodeUnits.Select(unit => unit.ToString()));
+        var branchPredictorInfo = BranchPredictionUnit.ToString();
+        var registerAllocationTableInfo = String.Join(' ', RegisterAllocationTable);
+        var registerInfo = String.Join(' ', Registers);
+        var memoryInfo = String.Join(' ', Memory);
+        var reorderBufferInfo = ReorderBuffer.ToString();
+        var reservationStationInfo = String.Join(',', ReservationStations.Select(station => station.ToString()));
+        var integerArithmeticUnitInfo = String.Join('\n', ExecutionUnits.Select(unit => unit.ToString()));
+        var branchUnitInfo = "";
+        var loadStoreInfo = "";
+
+        var tockInfo = new TockInfo(fetchUnitInfo, decodeUnitInfo, branchPredictorInfo, registerAllocationTableInfo,
+            registerInfo, memoryInfo, reorderBufferInfo, reservationStationInfo, integerArithmeticUnitInfo,
+            branchUnitInfo, loadStoreInfo);
             
-            Debug.Log("FETCH UNITS");
-            foreach (var fetchUnit in _fetchUnits)
-            {
-                Debug.Log(fetchUnit);
-            }
-
-            Debug.Log("DECODE UNITS");
-            foreach (var decodeUnit in _decodeUnits)
-            {
-                Debug.Log(decodeUnit);
-            }
-
-            Debug.Log("EXECUTION UNITS");
-            foreach (var executionUnit in ExecutionUnits)
-            {
-                Debug.Log(executionUnit);
-            }
-
-            Debug.Log("BRANCH PREDICTION UNIT");
-            Debug.Log(BranchPredictionUnit.ToString());
-
-            Debug.Log("RESERVATION STATIONS");
-            foreach (var station in ReservationStations)
-            {
-                Debug.Log(station);
-            }
-
-            Debug.Log("REORDER BUFFER");
-            Debug.Log(ReorderBuffer);
-
-            Debug.Log("REGISTERS");
-            Debug.Log(String.Join(' ', Registers));
-
-            Debug.Log("REGISTER ALLOCATION TABLE");
-            Debug.Log(RegisterAllocationTable);
-
-            Debug.Log("MEMORY");
-            Debug.Log(String.Join(' ', Memory));
-
-            Debug.Log("STATS");
-            Debug.Log("Program Counter: " + ProgramCounter + ", Fetch Counter: " + FetchCounter + ", Instructions Executed: " + InstructionsExecuted);
-        }
+        EventManager.TriggerTock(tockInfo);
         
         _cycle++;
 
@@ -230,6 +201,46 @@ public class Processor
     {
         var result = Array.FindIndex(ReservationStations, station => station.GetState() == ReservationStationState.FREE);
         return result == -1 ? null : result;
+    }
+}
+
+public struct TockInfo
+{
+    public string FetchUnitInfo;
+    public string DecodeUnitInfo;
+    public string BranchPredictorInfo;
+    public string RegisterAllocationTableInfo;
+    public string RegisterInfo;
+    public string MemoryInfo;
+    public string ReorderBufferInfo;
+    public string ReservationStationInfo;
+    public string IntegerArithmeticUnitInfo;
+    public string BranchUnitInfo;
+    public string LoadStoreUnitInfo;
+
+    public TockInfo(string fetchUnitInfo, 
+        string decodeUnitInfo, 
+        string branchPredictorInfo, 
+        string registerAllocationTableInfo, 
+        string registerInfo, 
+        string memoryInfo, 
+        string reorderBufferInfo, 
+        string reservationStationInfo, 
+        string integerArithmeticUnitInfo, 
+        string branchUnitInfo, 
+        string loadStoreUnitInfo)
+    {
+        FetchUnitInfo = fetchUnitInfo;
+        DecodeUnitInfo = decodeUnitInfo;
+        BranchPredictorInfo = branchPredictorInfo;
+        RegisterAllocationTableInfo = registerAllocationTableInfo;
+        RegisterInfo = registerInfo;
+        MemoryInfo = memoryInfo;
+        ReorderBufferInfo = reorderBufferInfo;
+        ReservationStationInfo = reservationStationInfo;
+        IntegerArithmeticUnitInfo = integerArithmeticUnitInfo;
+        BranchUnitInfo = branchUnitInfo;
+        LoadStoreUnitInfo = loadStoreUnitInfo;
     }
 }
 
