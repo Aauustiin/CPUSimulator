@@ -58,6 +58,15 @@ public class IntegerArithmeticUnit : IExecutionUnit
         _input = null;
     }
 
+    private void OnBranchMispredict(int fetchNum)
+    {
+        if ((_input != null) & (fetchNum < _input.Value.FetchNum))
+        {
+            _input = null;
+            _cyclesToWait = 0;
+        }
+    }
+    
     public void SetInput(ReservationStationData data)
     {
         _input = data;
@@ -85,10 +94,18 @@ public class IntegerArithmeticUnit : IExecutionUnit
     public IntegerArithmeticUnit(Processor processor)
     {
         _processor = processor;
+        _processor.BranchMispredict += OnBranchMispredict;
+    }
+    
+    ~IntegerArithmeticUnit()
+    {
+        _processor.BranchMispredict -= OnBranchMispredict;
     }
 
     public override string ToString()
     {
-        return _input + ", Cycles to Wait: " + _cyclesToWait;
+        if (_input != null)
+            return "Integer Arithmetic Unit: " + _input + ", Cycles to Wait: " + _cyclesToWait;
+        return "Integer Arithmetic Unit: Empty";
     }
 }

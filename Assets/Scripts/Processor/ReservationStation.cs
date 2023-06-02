@@ -60,9 +60,11 @@ public class ReservationStation
 
         var executionUnit = Array.Find(_processor.ExecutionUnits,
             unit => unit.IsFree() & unit.GetCompatibleOpcodes().Contains(_reservationStationData.Value.Opcode));
-        executionUnit.SetInput(_reservationStationData.Value);
-        Clear();
-        
+        if (executionUnit != null)
+        {
+            executionUnit.SetInput(_reservationStationData.Value);
+            Clear();
+        }
     }
     
     private void UpdateState()
@@ -98,7 +100,10 @@ public class ReservationStation
 
     public override string ToString()
     {
-        return _reservationStationData + ", State: " + _state;
+        if (_state != ReservationStationState.FREE)
+            return _reservationStationData + ", State: " + _state;
+
+        return "Free";
     }
 }
 

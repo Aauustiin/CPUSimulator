@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 
 public class DecodeUnit
 {
@@ -37,43 +38,77 @@ public class DecodeUnit
         // Make a ROB entry.
         _processor.ReorderBuffer.Issue(instruction.Opcode, Input.Value.FetchNum, convertedInstruction.Value.Destination, GetResultValue(convertedInstruction.Value));
         // Make a reservation station entry.
-        var sources = new List<int?>();
-        var sourceValues = new List<int?>();
-        foreach (var originalSource in instruction.Sources)
-        {
-            var sourceInformation = GetSourceInformation(originalSource);
-            sources.Add(sourceInformation.Item1);
-            sourceValues.Add(sourceInformation.Item2);
-        }
-        var reservationStationData = new ReservationStationData(instruction.Opcode, instruction.Destination, sources.ToArray(),
-            sourceValues.ToArray(), Input.Value.FetchNum, Input.Value.Prediction, Input.Value.ProgramCounter);
+        var sourceInfo = GetSourceInformation(instruction);
+        var reservationStationData = new ReservationStationData(instruction.Opcode, instruction.Destination, sourceInfo.Item1.ToArray(),
+            sourceInfo.Item2.ToArray(), Input.Value.FetchNum, Input.Value.Prediction, Input.Value.ProgramCounter);
 
-        // LOAD / STORE STUFF
-
-        var knownSource = false;
-
-        if (instruction.Opcode == Opcode.LOADI) knownSource = true;
-        else if (instruction.Opcode == Opcode.LOAD) knownSource = reservationStationData.SourceValues[0] != null;
-
-        if (knownSource)
-        {
-            if (_processor.ReorderBuffer.Entries.Any(entry => entry.Opcode == Opcode.STORE))
-            {
-                
-            }
-        }
-        
-        // END OF LOAD / STORE STUFF
-        
         _processor.ReservationStations[reservationStation.Value].SetReservationStationData(reservationStationData);
         
         Input = null;
     }
 
-    private (int?, int?) GetSourceInformation(int originalSource)
+    public static readonly Opcode[] AllRegOpcodes =
     {
-        var robEntryIndex = Array.FindIndex(_processor.ReorderBuffer.Entries, entry => entry.GetDestination() == originalSource);
-        
+        Opcode.ADD,
+        Opcode.SUB,
+        Opcode.MUL,
+        Opcode.DIV,
+        Opcode.MOD,
+        Opcode.BRANCHE,
+        Opcode.BRANCHG,
+        Opcode.BRANCHGE,
+        Opcode.COPY,
+        Opcode.STORE
+    };
+    
+    public static readonly Opcode[] RegImmOpcodes =
+    {
+        Opcode.ADDI,
+        Opcode.SUBI
+    };
+    
+    private (int?[], int?[]) GetSourceInformation(Instruction instruction)
+    {
+        if (AllRegOpcodes.Contains(instruction.Opcode))
+        {
+            var info = instruction.Sources.Select(source => GetRegisterSourceInfo(source));
+            var sources = info.Select(item => item.Item1).ToArray();
+            var sourceValues = info.Select(item => item.Item2).ToArray();
+            return (sources, sourceValues);
+        }
+        if (RegImmOpcodes.Contains(instruction.Opcode))
+        {
+            var sourceA = GetRegisterSourceInfo(instruction.Sources[0]);
+            var sourceB = GetImmediateSourceInfo(instruction.Sources[1]);
+            return (new int?[] { sourceA.Item1, sourceB.Item1 }, new int?[] { sourceA.Item2, sourceB.Item2 });
+        }
+        if (instruction.Opcode == Opcode.COPYI)
+        {
+            var sourceInfo = GetImmediateSourceInfo(instruction.Sources[0]);
+            return (new int?[] { sourceInfo.Item1 }, new int?[] { sourceInfo.Item2 });
+        }
+        if (instruction.Opcode == Opcode.LOADI)
+        {
+            return (new int?[] { null }, new int?[] { instruction.Sources[0] });
+        }
+        if (instruction.Opcode == Opcode.LOAD)
+        {
+            return (new int?[] { null }, new int?[] { instruction.Sources[0] });
+        }
+
+        return (new int?[] { }, new int?[] { });
+    }
+
+    private (int?, int?) GetImmediateSourceInfo(int originalSource)
+    {
+        return (null, originalSource);
+    }
+    
+    private (int?, int?) GetRegisterSourceInfo(int originalSource)
+    {
+        var robEntries = Array.FindAll(_processor.ReorderBuffer.Entries, entry => (entry.Opcode != Opcode.STORE) & (entry.GetDestination() == originalSource));
+        var robEntryIndex = robEntries.Length == 0 ? -1 : Array.FindIndex(robEntries, entry => entry.FetchNum == robEntries.Max(x => x.FetchNum));
+
         // If there's no ROB entry for this, then just use whatever is in the physical register.
         if (robEntryIndex == -1) return (null, _processor.Registers[originalSource]);
 

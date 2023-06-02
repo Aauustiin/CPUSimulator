@@ -23,14 +23,13 @@ public class InitialisationForm : MonoBehaviour
         var processorSpecification = new ProcessorSpecification((int)fetchSlider.value, (int)decodeSlider.value,
             (int)integerArithmeticSlider.value, (int)branchSlider.value, (int)loadStoreSlider.value, (int)reservationSlider.value,
             (int)registersSlider.value, 8, (int)reorderSlider.value,
-            predictorDropdown.captionText.text == "Dynamic" ? true : false,
+            predictorDropdown.captionText.text == "Dynamic",
             GetMode(modeDropdown.captionText.text));
         var programSpecification = GetProgramSpecification();
         
         var processor = new Processor(processorSpecification);
         processor.Process(programSpecification);
         
-        // Will have to set monitoring UI stuff to be active.
         gameObject.SetActive(false);
     }
 

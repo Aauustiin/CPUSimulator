@@ -5,14 +5,14 @@ public class BranchUnit : IExecutionUnit
 {
     private ReservationStationData? _input;
     private readonly Processor _processor;
-    
+
     private static readonly Opcode[] CompatibleOpcodes =
     {
         Opcode.BRANCHE,
         Opcode.BRANCHG,
         Opcode.BRANCHGE,
     };
-    
+
     public IEnumerable<Opcode> GetCompatibleOpcodes()
     {
         return CompatibleOpcodes;
@@ -45,24 +45,41 @@ public class BranchUnit : IExecutionUnit
         _processor.ReorderBuffer.Update(_input.Value.FetchNum, branch ? 1 : 0, null);
         _input = null;
     }
-    
+
+    private void OnBranchMispredict(int fetchNum)
+    {
+        if ((_input != null) & (fetchNum < _input.Value.FetchNum))
+        {
+            _input = null;
+        }
+    }
+
     public void SetInput(ReservationStationData data)
     {
         _input = data;
     }
-    
+
     public bool IsFree()
     {
         return _input == null;
     }
-    
+
     public BranchUnit(Processor processor)
     {
         _processor = processor;
+        _processor.BranchMispredict += OnBranchMispredict;
+    }
+
+    ~BranchUnit()
+    {
+        _processor.BranchMispredict -= OnBranchMispredict;
     }
 
     public override string ToString()
     {
-        return _input.ToString();
+        if (_input != null)
+            return "Branch Unit: " + _input.ToString();
+
+        return "Branch Unit:  Empty";
     }
 }

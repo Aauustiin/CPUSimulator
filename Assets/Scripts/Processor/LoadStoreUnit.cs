@@ -47,6 +47,17 @@ public class LoadStoreUnit : IExecutionUnit
             default:
                 throw new ArgumentOutOfRangeException();
         }
+
+        _input = null;
+    }
+
+    private void OnBranchMispredict(int fetchNum)
+    {
+        if ((_input != null) & (fetchNum < _input.Value.FetchNum))
+        {
+            _input = null;
+            _cyclesToWait = 0;
+        }
     }
     
     public void SetInput(ReservationStationData data)
@@ -63,10 +74,19 @@ public class LoadStoreUnit : IExecutionUnit
     public LoadStoreUnit(Processor processor)
     {
         _processor = processor;
+        _processor.BranchMispredict += OnBranchMispredict;
+    }
+
+    ~LoadStoreUnit()
+    {
+        _processor.BranchMispredict -= OnBranchMispredict;
     }
 
     public override string ToString()
     {
-        return _input + ", Cycles to Wait: " + _cyclesToWait;
+        if (_input != null)
+            return "Load Store Unit: " + _input + ", Cycles to Wait: " + _cyclesToWait;
+
+        return "Load Store Unit: Empty";
     }
 }

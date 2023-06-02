@@ -157,7 +157,7 @@ public class Processor
         var registerInfo = String.Join(' ', Registers);
         var memoryInfo = String.Join(' ', Memory);
         var reorderBufferInfo = ReorderBuffer.ToString();
-        var reservationStationInfo = String.Join(',', ReservationStations.Select(station => station.ToString()));
+        var reservationStationInfo = String.Join('\n', ReservationStations.Select(station => station.ToString()));
         var integerArithmeticUnitInfo = String.Join('\n', ExecutionUnits.Select(unit => unit.ToString()));
         var branchUnitInfo = "";
         var loadStoreInfo = "";

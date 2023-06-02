@@ -31,9 +31,9 @@ public class ReorderBuffer
     public void Issue(Opcode opcode, int fetchNum, int? destination, int? value)
     {
         if (IsFull()) return; // Can't issue anything if we don't have space.
-        if (_issuePointer == -1) _issuePointer = _commitPointer;
+        if (_commitPointer == -1) _commitPointer = _issuePointer;
         Entries[_issuePointer].Initialise(opcode, fetchNum, destination, value);
-        _issuePointer = (_issuePointer - 1) % Entries.Length;
+        _issuePointer = (_issuePointer + 1) % Entries.Length;
     }
     
     // Update a given entry with a new value and/or destination.
@@ -85,7 +85,7 @@ public class ReorderBuffer
 
     public override string ToString()
     {
-        return "Issue: " + _issuePointer + ", Commit: " + _commitPointer + " " + String.Join(' ', Entries.ToString());
+        return "Issue: " + _issuePointer + ", Commit: " + _commitPointer + "\n" + String.Join('\n', Entries.Select(entry => entry.ToString()));
     }
 }
 
@@ -101,8 +101,6 @@ public class ReorderBufferEntry
     private int? _value;
 
     public event System.Action<int> ValueProvided;
-    
-    public event System.Action<int> DestinationProvided;
 
     public ReorderBufferEntry(int id)
     {
@@ -134,7 +132,6 @@ public class ReorderBufferEntry
     public void SetDestination(int destination)
     {
         _destination = destination;
-        DestinationProvided?.Invoke(Id);
     }
 
     public int? GetDestination()
@@ -144,7 +141,9 @@ public class ReorderBufferEntry
 
     public override string ToString()
     {
-        return "ID: " + Id + ", Free: " + Free + ", Opcode: " + Opcode + ", Destination: " + _destination +
-               ", Value: " + _value + ", Fetch Number: " + FetchNum;
+        if (!Free)
+            return "ID: " + Id + ", Opcode: " + Opcode + ", Destination: " + _destination +
+                   ", Value: " + _value + ", Fetch Number: " + FetchNum;
+        else return "ID: " + Id + ", Free";
     }
 }

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 public class RegisterAllocationTable
@@ -21,10 +22,29 @@ public class RegisterAllocationTable
     {
         var potentialNewDestination = _processor.GetAvailableRegister();
         if ((instruction.Destination != null) & (potentialNewDestination == null)) return null;
+
+        if ((instruction.Destination != null) & (potentialNewDestination != null))
+            _table[instruction.Destination.Value] = potentialNewDestination.Value;
         
+        // We don't wanna convert all the sources, only those that are references to registers
         return new Instruction(instruction.Opcode, 
             instruction.Destination == null ? null : potentialNewDestination,
-            instruction.Sources.Select(source => _table[source]).ToList());
+            ConvertSources(instruction));
+    }
+
+    public List<int> ConvertSources(Instruction instruction)
+    {
+        if (DecodeUnit.AllRegOpcodes.Contains(instruction.Opcode) | (instruction.Opcode == Opcode.LOAD))
+        {
+            return instruction.Sources.Select(source => _table[source]).ToList();
+        }
+
+        if (DecodeUnit.RegImmOpcodes.Contains(instruction.Opcode))
+        {
+            return new List<int> { _table[instruction.Sources[0]], instruction.Sources[1] };
+        }
+
+        return instruction.Sources;
     }
 
     public override string ToString()
