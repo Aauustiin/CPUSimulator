@@ -45,10 +45,11 @@ public class InitialisationForm : MonoBehaviour
             "Super Simple Sum" => "Assets\\Scripts\\Assembly\\Tests\\SuperSimpleSum.txt",
             _ => throw new ArgumentOutOfRangeException()
         };
+        // Would be better if this were written into the same file that the assembly is? Or maybe a different file?
         var memory = programDropdown.captionText.text switch
         {
             "Sum" => new int[] { 5, 2, 3, 4, 5, 6 },
-            "Simple Sum" => new int[] {},
+            "Simple Sum" => new int[] { 3, 4 },
             "Super Simple Sum" => new int[] {},
             _ => throw new ArgumentOutOfRangeException()
         };

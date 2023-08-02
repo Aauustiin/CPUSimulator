@@ -42,7 +42,7 @@ public class LoadStoreUnit : IExecutionUnit
                     null);
                 break;
             case Opcode.STORE:
-                _processor.ReorderBuffer.Update(_input.Value.FetchNum, _input.Value.SourceValues[0], null);
+                _processor.ReorderBuffer.Update(_input.Value.FetchNum, _input.Value.SourceValues[1], _input.Value.SourceValues[0]);
                 break;
             default:
                 throw new ArgumentOutOfRangeException();

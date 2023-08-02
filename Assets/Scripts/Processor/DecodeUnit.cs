@@ -87,11 +87,11 @@ public class DecodeUnit
             var sourceInfo = GetImmediateSourceInfo(instruction.Sources[0]);
             return (new int?[] { sourceInfo.Item1 }, new int?[] { sourceInfo.Item2 });
         }
-        if (instruction.Opcode == Opcode.LOADI)
+        if (instruction.Opcode == Opcode.LOADI) 
         {
             return (new int?[] { null }, new int?[] { instruction.Sources[0] });
         }
-        if (instruction.Opcode == Opcode.LOAD)
+        if (instruction.Opcode == Opcode.LOAD) // Why are load and loadi the same? Shouldn't load be using getregistersourceinfo?
         {
             return (new int?[] { null }, new int?[] { instruction.Sources[0] });
         }

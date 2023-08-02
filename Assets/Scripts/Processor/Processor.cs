@@ -79,6 +79,8 @@ public class Processor
 
         ProcessorMode = processorSpecification.InitialProcessorMode;
 
+        RegisterRenaming = processorSpecification.RegisterRenaming;
+
         EventManager.Tick += OnTick;
     }
 
