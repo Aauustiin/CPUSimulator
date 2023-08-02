@@ -63,7 +63,8 @@ public class LoadStoreUnit : IExecutionUnit
     public void SetInput(ReservationStationData data)
     {
         _input = data;
-        _cyclesToWait = 10;
+        _cyclesToWait = 0;
+        //_cyclesToWait = 10;
     }
     
     public bool IsFree()

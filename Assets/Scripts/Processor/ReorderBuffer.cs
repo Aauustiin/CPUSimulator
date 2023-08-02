@@ -1,10 +1,11 @@
 using System;
 using System.Linq;
+using UnityEngine;
 
 public class ReorderBuffer
 {
     public ReorderBufferEntry[] Entries;
-    private int _issuePointer, _commitPointer;
+    private int? _issuePointer, _commitPointer;
     private readonly Processor _processor;
     
     public ReorderBuffer(int size, Processor processor)
@@ -15,7 +16,7 @@ public class ReorderBuffer
             Entries[i] = new ReorderBufferEntry(i);
         }
 
-        _commitPointer = -1;
+        _commitPointer = null;
         _issuePointer = 0;
         
         _processor = processor;
@@ -31,28 +32,36 @@ public class ReorderBuffer
     public void Issue(Opcode opcode, int fetchNum, int? destination, int? value)
     {
         if (IsFull()) return; // Can't issue anything if we don't have space.
-        if (_commitPointer == -1) _commitPointer = _issuePointer;
-        Entries[_issuePointer].Initialise(opcode, fetchNum, destination, value);
-        _issuePointer = (_issuePointer + 1) % Entries.Length;
+
+        if (_commitPointer == null) _commitPointer = _issuePointer;
+        Entries[_issuePointer.Value].Initialise(opcode, fetchNum, destination, value);
+        
+        _issuePointer = IsFull() ? null : (_issuePointer + 1) % Entries.Length;
     }
     
     // Update a given entry with a new value and/or destination.
     public void Update(int fetchNum, int? value, int? destination)
     {
         var entryNum = Array.FindIndex(Entries, entry => entry.FetchNum == fetchNum);
+        
         // Update Value
         if (value != null) Entries[entryNum].SetValue(value.Value);
         if (destination != null) Entries[entryNum].SetDestination(destination.Value);
+        
         // Commit anything that needs to be committed.
-        while ((Entries[_commitPointer].GetValue() != null) & (Entries[_commitPointer].GetDestination() != null))
+        if (_commitPointer == null) throw new Exception();
+        while ((Entries[_commitPointer.Value].GetValue() != null) & (Entries[_commitPointer.Value].GetDestination() != null))
         {
-            if (Entries[_commitPointer].Opcode != Opcode.STORE)
-                _processor.Registers[Entries[_commitPointer].GetDestination().Value] = Entries[_commitPointer].GetValue().Value;
-            else if (Entries[_commitPointer].GetDestination() != null) 
-                _processor.Memory[Entries[_commitPointer].GetDestination().Value] = Entries[_commitPointer].GetValue().Value;
-            Entries[_commitPointer].Free = true;
+            if (_issuePointer == null) _issuePointer = _commitPointer;
+            
+            if (Entries[_commitPointer.Value].Opcode == Opcode.STORE)
+                _processor.Memory[Entries[_commitPointer.Value].GetDestination().Value] = Entries[_commitPointer.Value].GetValue().Value;
+            else _processor.Registers[Entries[_commitPointer.Value].GetDestination().Value] = Entries[_commitPointer.Value].GetValue().Value;
+            
+            Entries[_commitPointer.Value].Free = true;
             _commitPointer = (_commitPointer + 1) % Entries.Length;
         }
+        if (_commitPointer == _issuePointer) _commitPointer = null;
     }
 
     public int? GetRegisterValue(int register)
@@ -136,7 +145,7 @@ public class ReorderBufferEntry
 
     public int? GetDestination()
     {
-        return _destination;
+        return Free ? null : _destination;
     }
 
     public override string ToString()
@@ -144,6 +153,7 @@ public class ReorderBufferEntry
         if (!Free)
             return "ID: " + Id + ", Opcode: " + Opcode + ", Destination: " + _destination +
                    ", Value: " + _value + ", Fetch Number: " + FetchNum;
-        else return "ID: " + Id + ", Free";
+        
+        return "ID: " + Id + ", Free";
     }
 }

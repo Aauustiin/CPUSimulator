@@ -26,19 +26,19 @@ public class DecodeUnit
         if (Input == null) return;
         
         var instruction = Input.Value.Instruction;
-        var convertedInstruction = _processor.RegisterAllocationTable.ConvertInstruction(instruction);
+        var convertedInstruction = _processor.RegisterRenaming ? _processor.RegisterAllocationTable.ConvertInstruction(instruction) : instruction;
         
         // If there is no available destination register, then stall.
         if (convertedInstruction == null) return;
 
-        // If there is no space in the ROB or the reservation stations, stall.
+        // If there is no space in the ROB or the reservation stations, stall. - ISSUE 2: But what about for instructions that don't need a reservation station?
         var reservationStation = _processor.GetAvailableReservationStation();
         if ((reservationStation == null) | _processor.ReorderBuffer.IsFull()) return;
         
         // Make a ROB entry.
         _processor.ReorderBuffer.Issue(instruction.Opcode, Input.Value.FetchNum, convertedInstruction.Value.Destination, GetResultValue(convertedInstruction.Value));
-        // Make a reservation station entry.
-        var sourceInfo = GetSourceInformation(instruction);
+        // Make a reservation station entry. - ISSUE 1: Why have I assumed that every instruction needs a reservation station entry?
+        var sourceInfo = GetSourceInformation(instruction, Input.Value.FetchNum);
         var reservationStationData = new ReservationStationData(instruction.Opcode, instruction.Destination, sourceInfo.Item1.ToArray(),
             sourceInfo.Item2.ToArray(), Input.Value.FetchNum, Input.Value.Prediction, Input.Value.ProgramCounter);
 
@@ -67,18 +67,18 @@ public class DecodeUnit
         Opcode.SUBI
     };
     
-    private (int?[], int?[]) GetSourceInformation(Instruction instruction)
+    private (int?[], int?[]) GetSourceInformation(Instruction instruction, int fetchNum)
     {
         if (AllRegOpcodes.Contains(instruction.Opcode))
         {
-            var info = instruction.Sources.Select(source => GetRegisterSourceInfo(source));
+            var info = instruction.Sources.Select(source => GetRegisterSourceInfo(source, fetchNum));
             var sources = info.Select(item => item.Item1).ToArray();
             var sourceValues = info.Select(item => item.Item2).ToArray();
             return (sources, sourceValues);
         }
         if (RegImmOpcodes.Contains(instruction.Opcode))
         {
-            var sourceA = GetRegisterSourceInfo(instruction.Sources[0]);
+            var sourceA = GetRegisterSourceInfo(instruction.Sources[0], fetchNum);
             var sourceB = GetImmediateSourceInfo(instruction.Sources[1]);
             return (new int?[] { sourceA.Item1, sourceB.Item1 }, new int?[] { sourceA.Item2, sourceB.Item2 });
         }
@@ -104,16 +104,18 @@ public class DecodeUnit
         return (null, originalSource);
     }
     
-    private (int?, int?) GetRegisterSourceInfo(int originalSource)
+    private (int?, int?) GetRegisterSourceInfo(int originalSource, int fetchNum)
     {
-        var robEntries = Array.FindAll(_processor.ReorderBuffer.Entries, entry => (entry.Opcode != Opcode.STORE) & (entry.GetDestination() == originalSource));
-        var robEntryIndex = robEntries.Length == 0 ? -1 : Array.FindIndex(robEntries, entry => entry.FetchNum == robEntries.Max(x => x.FetchNum));
+        var robEntries = Array.FindAll(_processor.ReorderBuffer.Entries, entry => (entry.Opcode != Opcode.STORE) & (entry.GetDestination() == originalSource) & (entry.FetchNum < fetchNum));
+        var index = robEntries.Length == 0 ? -1 : Array.FindIndex(robEntries, entry => entry.FetchNum == robEntries.Max(x => x.FetchNum));
 
         // If there's no ROB entry for this, then just use whatever is in the physical register.
-        if (robEntryIndex == -1) return (null, _processor.Registers[originalSource]);
+        if (index == -1) return (null, _processor.Registers[originalSource]);
 
         // Otherwise, return whatever is indicated by the ROB entry;
-        var robEntryValue = _processor.ReorderBuffer.Entries[robEntryIndex].GetValue();
+        var robEntryValue = robEntries[index].GetValue();
+        var robEntryIndex = Array.FindIndex(_processor.ReorderBuffer.Entries,
+            entry => entry.FetchNum == robEntries[index].FetchNum);
         return robEntryValue == null ? (robEntryIndex, null) : (null, robEntryValue);
     }
 

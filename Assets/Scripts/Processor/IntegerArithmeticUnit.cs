@@ -70,20 +70,21 @@ public class IntegerArithmeticUnit : IExecutionUnit
     public void SetInput(ReservationStationData data)
     {
         _input = data;
+        _cyclesToWait = 0;
 
-        _cyclesToWait = data.Opcode switch
-        {
-            Opcode.ADD => 0,
-            Opcode.ADDI => 0,
-            Opcode.SUB => 0,
-            Opcode.SUBI => 0,
-            Opcode.MUL => 3,
-            Opcode.DIV => 4,
-            Opcode.MOD => 4,
-            Opcode.COPY => 0,
-            Opcode.COPYI => 0,
-            _ => throw new ArgumentOutOfRangeException()
-        };
+        //_cyclesToWait = data.Opcode switch
+        //{
+        //    Opcode.ADD => 0,
+        //    Opcode.ADDI => 0,
+        //    Opcode.SUB => 0,
+        //    Opcode.SUBI => 0,
+        //    Opcode.MUL => 3,
+        //    Opcode.DIV => 4,
+        //    Opcode.MOD => 4,
+        //    Opcode.COPY => 0,
+        //    Opcode.COPYI => 0,
+        //    _ => throw new ArgumentOutOfRangeException()
+        //};
     }
     
     public bool IsFree()

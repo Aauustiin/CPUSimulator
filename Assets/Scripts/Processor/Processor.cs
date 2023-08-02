@@ -19,6 +19,8 @@ public class Processor
     public int[] Memory;
     public Instruction[] Instructions;
 
+    public bool RegisterRenaming;
+
     public int ProgramCounter;
     private int _cycle;
     public int FetchCounter;
@@ -257,6 +259,7 @@ public struct ProcessorSpecification
     public readonly int ReorderBufferSize;
     public readonly bool DynamicBranchPredictor;
     public readonly ProcessorMode InitialProcessorMode;
+    public bool RegisterRenaming;
 
     public ProcessorSpecification(
         int numFetchUnits, 
@@ -269,7 +272,8 @@ public struct ProcessorSpecification
         int numArchitecturalRegisters,
         int reorderBufferSize,
         bool dynamicBranchPredictor,
-        ProcessorMode initialProcessorMode)
+        ProcessorMode initialProcessorMode,
+        bool registerRenaming)
     {
         NumFetchUnits = numFetchUnits;
         NumDecodeUnits = numDecodeUnits;
@@ -282,6 +286,7 @@ public struct ProcessorSpecification
         ReorderBufferSize = reorderBufferSize;
         DynamicBranchPredictor = dynamicBranchPredictor;
         InitialProcessorMode = initialProcessorMode;
+        RegisterRenaming = registerRenaming;
     }
 }
 
