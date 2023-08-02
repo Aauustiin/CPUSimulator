@@ -6,7 +6,7 @@ public class BranchUnit : IExecutionUnit
     private ReservationStationData? _input;
     private readonly Processor _processor;
 
-    private static readonly Opcode[] CompatibleOpcodes =
+    public static readonly Opcode[] CompatibleOpcodes =
     {
         Opcode.BRANCHE,
         Opcode.BRANCHG,
@@ -30,25 +30,27 @@ public class BranchUnit : IExecutionUnit
             _ => throw new ArgumentOutOfRangeException()
         };
 
+        bool mispredict = false;
         if (branch & !_input.Value.Prediction.Value)
         {
             _processor.TriggerBranchMispredict(_input.Value.FetchNum);
             _processor.ProgramCounter = _input.Value.SourceValues[0].Value;
-            // Need to do something to the reorder buffer so it knows it can commit
+            mispredict = true;
         }
         else if (!branch & _input.Value.Prediction.Value)
         {
             _processor.TriggerBranchMispredict(_input.Value.FetchNum);
-            _processor.ProgramCounter = _input.Value.ProgramCounter;
+            _processor.ProgramCounter = _input.Value.ProgramCounter + 1;
+            mispredict = true;
         }
 
-        _processor.ReorderBuffer.Update(_input.Value.FetchNum, branch ? 1 : 0, null);
+        if (!mispredict) _processor.ReorderBuffer.Update(_input.Value.FetchNum, branch ? 1 : 0, null);
         _input = null;
     }
 
     private void OnBranchMispredict(int fetchNum)
     {
-        if ((_input != null) & (fetchNum < _input.Value.FetchNum))
+        if ((_input != null) && (fetchNum < _input.Value.FetchNum))
         {
             _input = null;
         }

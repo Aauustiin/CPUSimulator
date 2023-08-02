@@ -60,7 +60,7 @@ public class IntegerArithmeticUnit : IExecutionUnit
 
     private void OnBranchMispredict(int fetchNum)
     {
-        if ((_input != null) & (fetchNum < _input.Value.FetchNum))
+        if ((_input != null) && (fetchNum < _input.Value.FetchNum))
         {
             _input = null;
             _cyclesToWait = 0;

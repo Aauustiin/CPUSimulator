@@ -1,4 +1,6 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
@@ -43,20 +45,21 @@ public class ReorderBuffer
     public void Update(int fetchNum, int? value, int? destination)
     {
         var entryNum = Array.FindIndex(Entries, entry => entry.FetchNum == fetchNum);
-        
+
         // Update Value
         if (value != null) Entries[entryNum].SetValue(value.Value);
         if (destination != null) Entries[entryNum].SetDestination(destination.Value);
         
         // Commit anything that needs to be committed.
         if (_commitPointer == null) throw new Exception();
-        while ((Entries[_commitPointer.Value].GetValue() != null) & (Entries[_commitPointer.Value].GetDestination() != null))
+        while ((Entries[_commitPointer.Value].GetValue() != null) & (Entries[_commitPointer.Value].FetchNum <= fetchNum) & ((Entries[_commitPointer.Value].GetDestination() != null) | BranchUnit.CompatibleOpcodes.Contains(Entries[_commitPointer.Value].Opcode)))
         {
             if (_issuePointer == null) _issuePointer = _commitPointer;
             
             if (Entries[_commitPointer.Value].Opcode == Opcode.STORE)
                 _processor.Memory[Entries[_commitPointer.Value].GetDestination().Value] = Entries[_commitPointer.Value].GetValue().Value;
-            else _processor.Registers[Entries[_commitPointer.Value].GetDestination().Value] = Entries[_commitPointer.Value].GetValue().Value;
+            else if (!BranchUnit.CompatibleOpcodes.Contains(Entries[_commitPointer.Value].Opcode))
+                _processor.Registers[Entries[_commitPointer.Value].GetDestination().Value] = Entries[_commitPointer.Value].GetValue().Value;
             
             Entries[_commitPointer.Value].Free = true;
             _commitPointer = (_commitPointer + 1) % Entries.Length;
@@ -82,14 +85,15 @@ public class ReorderBuffer
 
     private void OnBranchMispredict(int fetchNum)
     {
-        var remainingEntries = Entries.Where(entry => entry.FetchNum < fetchNum).ToArray();
+        var remainingEntries = Entries.Where(entry => (entry.FetchNum < fetchNum) && !entry.Free).ToArray();
+        Array.Sort(remainingEntries, new RobEntryComparer());
         for (var i = 0; i < Entries.Length; i++)
         {
             Entries[i] = i < remainingEntries.Length ? remainingEntries[i] : new ReorderBufferEntry(i);
         }
 
-        _commitPointer = remainingEntries.Length - 1;
-        _issuePointer = Entries.Length - 1;
+        _commitPointer = remainingEntries.Length == 0 ? null : 0;
+        _issuePointer = remainingEntries.Length;
     }
 
     public override string ToString()
@@ -155,5 +159,15 @@ public class ReorderBufferEntry
                    ", Value: " + _value + ", Fetch Number: " + FetchNum;
         
         return "ID: " + Id + ", Free";
+    }
+}
+
+public class RobEntryComparer : IComparer<ReorderBufferEntry>
+{
+    public int Compare(ReorderBufferEntry x, ReorderBufferEntry y)
+    {
+        if (x.FetchNum < y.FetchNum) return -1;
+        if (x.FetchNum == y.FetchNum) return 0;
+        return 1;
     }
 }

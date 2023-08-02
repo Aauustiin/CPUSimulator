@@ -34,7 +34,7 @@ public class DecodeUnit
         // If there is no space in the ROB or the reservation stations, stall. - ISSUE 2: But what about for instructions that don't need a reservation station?
         var reservationStation = _processor.GetAvailableReservationStation();
         if ((reservationStation == null) | _processor.ReorderBuffer.IsFull()) return;
-        
+
         // Make a ROB entry.
         _processor.ReorderBuffer.Issue(instruction.Opcode, Input.Value.FetchNum, convertedInstruction.Value.Destination, GetResultValue(convertedInstruction.Value));
         // Make a reservation station entry. - ISSUE 1: Why have I assumed that every instruction needs a reservation station entry?
@@ -58,7 +58,8 @@ public class DecodeUnit
         Opcode.BRANCHG,
         Opcode.BRANCHGE,
         Opcode.COPY,
-        Opcode.STORE
+        Opcode.STORE,
+        Opcode.LOAD
     };
     
     public static readonly Opcode[] RegImmOpcodes =
@@ -88,10 +89,6 @@ public class DecodeUnit
             return (new int?[] { sourceInfo.Item1 }, new int?[] { sourceInfo.Item2 });
         }
         if (instruction.Opcode == Opcode.LOADI) 
-        {
-            return (new int?[] { null }, new int?[] { instruction.Sources[0] });
-        }
-        if (instruction.Opcode == Opcode.LOAD) // Why are load and loadi the same? Shouldn't load be using getregistersourceinfo?
         {
             return (new int?[] { null }, new int?[] { instruction.Sources[0] });
         }
