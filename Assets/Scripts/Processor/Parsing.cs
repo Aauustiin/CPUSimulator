@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using UnityEngine;
 
 public static class Parsing
 {
@@ -37,7 +38,7 @@ public static class Parsing
         foreach (var line in lines)
         {
             Enum.TryParse(line[0], out Opcode opcode);
-
+            
             if (LabelledOpcodes.Contains(opcode))
             {
                 line[^1] = labels[line.Last()];

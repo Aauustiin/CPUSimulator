@@ -52,7 +52,11 @@ public class InitialisationForm : MonoBehaviour
             "Sum" => new int[] { 5, 2, 3, 4, 5, 6 },
             "Simple Sum" => new int[] { 3, 4 },
             "Super Simple Sum" => new int[] {},
-            "Rule 110" => new int[] { 3, 0, 1, 0, 0, 0, 0 },
+            "Rule 110" => new int[]
+            {
+                24, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 0, 0, 0, 1, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+            },
             _ => throw new ArgumentOutOfRangeException()
         };
         var program = Parsing.LoadProgram(filePath);
