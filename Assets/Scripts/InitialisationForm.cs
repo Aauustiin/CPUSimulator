@@ -43,6 +43,7 @@ public class InitialisationForm : MonoBehaviour
             "Sum" => "Assets\\Scripts\\Assembly\\Tests\\Sum.txt",
             "Simple Sum" => "Assets\\Scripts\\Assembly\\Tests\\SimpleSum.txt",
             "Super Simple Sum" => "Assets\\Scripts\\Assembly\\Tests\\SuperSimpleSum.txt",
+            "Sub and Mod" => "Assets\\Scripts\\Assembly\\Tests\\SubMod.txt",
             "Rule 110" => "Assets\\Scripts\\Assembly\\Experiments\\Rule110.txt",
             _ => throw new ArgumentOutOfRangeException()
         };
@@ -52,6 +53,7 @@ public class InitialisationForm : MonoBehaviour
             "Sum" => new int[] { 5, 2, 3, 4, 5, 6 },
             "Simple Sum" => new int[] { 3, 4 },
             "Super Simple Sum" => new int[] {},
+            "Sub and Mod" => new int[] {},
             "Rule 110" => new int[]
             {
                 24, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 0, 0, 0, 1, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0,

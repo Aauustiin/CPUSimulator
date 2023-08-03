@@ -42,7 +42,7 @@ public class IntegerArithmeticUnit : IExecutionUnit
             Opcode.ADD => _input.Value.SourceValues[0] + _input.Value.SourceValues[1],
             Opcode.ADDI => _input.Value.SourceValues[0] + _input.Value.SourceValues[1],
             Opcode.SUB => _input.Value.SourceValues[0] - _input.Value.SourceValues[1],
-            Opcode.SUBI => _input.Value.SourceValues[0] + _input.Value.SourceValues[1],
+            Opcode.SUBI => _input.Value.SourceValues[0] - _input.Value.SourceValues[1],
             Opcode.MUL => _input.Value.SourceValues[0] * _input.Value.SourceValues[1],
             Opcode.DIV => _input.Value.SourceValues[0] / _input.Value.SourceValues[1],
             Opcode.MOD => _input.Value.SourceValues[0] % _input.Value.SourceValues[1],
