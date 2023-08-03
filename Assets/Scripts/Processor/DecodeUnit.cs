@@ -54,9 +54,6 @@ public class DecodeUnit
         Opcode.MUL,
         Opcode.DIV,
         Opcode.MOD,
-        Opcode.BRANCHE,
-        Opcode.BRANCHG,
-        Opcode.BRANCHGE,
         Opcode.COPY,
         Opcode.STORE,
         Opcode.LOAD
@@ -70,6 +67,12 @@ public class DecodeUnit
     
     private (int?[], int?[]) GetSourceInformation(Instruction instruction, int fetchNum)
     {
+        if (BranchUnit.CompatibleOpcodes.Contains(instruction.Opcode))
+        {
+            var sourceA = GetRegisterSourceInfo(instruction.Sources[0], fetchNum);
+            var sourceB = GetRegisterSourceInfo(instruction.Sources[1], fetchNum);
+            return (new int?[] { sourceA.Item1, sourceB.Item1 }, new int?[] { sourceA.Item2, sourceB.Item2 });
+        }
         if (AllRegOpcodes.Contains(instruction.Opcode))
         {
             var info = instruction.Sources.Select(source => GetRegisterSourceInfo(source, fetchNum));

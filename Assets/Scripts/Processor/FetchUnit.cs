@@ -61,7 +61,7 @@ public class FetchUnit
 
     private void OnBranchMispredict(int fetchNum)
     {
-        if ((_output != null) & (_output.Value.FetchNum > fetchNum))
+        if ((_output != null) && (_output.Value.FetchNum > fetchNum))
         {
             _output = null;
         }

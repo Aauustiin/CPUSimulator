@@ -76,7 +76,7 @@ public static class Parsing
             Opcode.BRANCHE => (null, operands),
             Opcode.BRANCHG => (null, operands),
             Opcode.BRANCHGE => (null, operands),
-            Opcode.JUMP => (null, new List<int>()),
+            Opcode.JUMP => (null, operands),
             _ => throw new ArgumentOutOfRangeException()
         };
     }
