@@ -18,6 +18,7 @@ public class InitialisationForm : MonoBehaviour
     [SerializeField] private TMP_Dropdown modeDropdown;
     [SerializeField] private TMP_Dropdown programDropdown;
 
+    [SerializeField] private Toggle variableExecutionTimeToggle;
     [SerializeField] private Toggle registerRenamingToggle;
 
     public void OnSubmit()
@@ -27,7 +28,8 @@ public class InitialisationForm : MonoBehaviour
             (int)registersSlider.value, 8, (int)reorderSlider.value,
             predictorDropdown.captionText.text == "Dynamic",
             GetMode(modeDropdown.captionText.text),
-            registerRenamingToggle.isOn);
+            registerRenamingToggle.isOn,
+            variableExecutionTimeToggle.isOn);
         var programSpecification = GetProgramSpecification();
         
         var processor = new Processor(processorSpecification);

@@ -19,7 +19,8 @@ public class Processor
     public int[] Memory;
     public Instruction[] Instructions;
 
-    public bool RegisterRenaming;
+    public readonly bool RegisterRenaming;
+    public readonly bool VariableExecutionTime;
 
     public int ProgramCounter;
     private int _cycle;
@@ -79,6 +80,7 @@ public class Processor
 
         ProcessorMode = processorSpecification.InitialProcessorMode;
 
+        VariableExecutionTime = processorSpecification.VariableExecutionTime;
         RegisterRenaming = processorSpecification.RegisterRenaming;
 
         EventManager.Tick += OnTick;
@@ -261,7 +263,8 @@ public struct ProcessorSpecification
     public readonly int ReorderBufferSize;
     public readonly bool DynamicBranchPredictor;
     public readonly ProcessorMode InitialProcessorMode;
-    public bool RegisterRenaming;
+    public readonly bool VariableExecutionTime;
+    public readonly bool RegisterRenaming;
 
     public ProcessorSpecification(
         int numFetchUnits, 
@@ -275,7 +278,8 @@ public struct ProcessorSpecification
         int reorderBufferSize,
         bool dynamicBranchPredictor,
         ProcessorMode initialProcessorMode,
-        bool registerRenaming)
+        bool registerRenaming,
+        bool variableExecutionTime)
     {
         NumFetchUnits = numFetchUnits;
         NumDecodeUnits = numDecodeUnits;
@@ -288,6 +292,7 @@ public struct ProcessorSpecification
         ReorderBufferSize = reorderBufferSize;
         DynamicBranchPredictor = dynamicBranchPredictor;
         InitialProcessorMode = initialProcessorMode;
+        VariableExecutionTime = variableExecutionTime;
         RegisterRenaming = registerRenaming;
     }
 }

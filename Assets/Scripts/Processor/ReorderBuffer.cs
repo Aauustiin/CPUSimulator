@@ -85,15 +85,17 @@ public class ReorderBuffer
 
     private void OnBranchMispredict(int fetchNum)
     {
-        var remainingEntries = Entries.Where(entry => (entry.FetchNum < fetchNum) && !entry.Free).ToArray();
-        Array.Sort(remainingEntries, new RobEntryComparer());
-        for (var i = 0; i < Entries.Length; i++)
-        {
-            Entries[i] = i < remainingEntries.Length ? remainingEntries[i] : new ReorderBufferEntry(i);
-        }
+        if (_issuePointer == null) _issuePointer = _commitPointer;
+        _issuePointer = (_issuePointer - 1 + Entries.Length) % Entries.Length;
 
-        _commitPointer = remainingEntries.Length == 0 ? null : 0;
-        _issuePointer = remainingEntries.Length;
+        while (Entries[_issuePointer.Value].FetchNum != fetchNum)
+        {
+            Entries[_issuePointer.Value].Free = true;
+            _issuePointer = (_issuePointer - 1 + Entries.Length) % Entries.Length;
+        }
+        Entries[_issuePointer.Value].Free = true;
+
+        if (_issuePointer == _commitPointer) _commitPointer = null;
     }
 
     public override string ToString()

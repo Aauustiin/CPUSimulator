@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 public class LoadStoreUnit : IExecutionUnit
 {
@@ -63,8 +64,7 @@ public class LoadStoreUnit : IExecutionUnit
     public void SetInput(ReservationStationData data)
     {
         _input = data;
-        _cyclesToWait = 0;
-        //_cyclesToWait = 10;
+        _cyclesToWait = _processor.VariableExecutionTime ? 10 : 0;
     }
     
     public bool IsFree()

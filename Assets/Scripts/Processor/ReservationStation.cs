@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine;
 
 public class ReservationStation
 {
@@ -26,14 +25,14 @@ public class ReservationStation
     public void SetReservationStationData(ReservationStationData reservationStationData)
     {
         _reservationStationData = reservationStationData;
-        
+
         foreach (var source in reservationStationData.Sources)
         {
             if (source == null) continue;
             _processor.ReorderBuffer.Entries[source.Value].ValueProvided += OnSourceUpdated;
             _subscriptions.Add(source.Value);
         }
-        
+
         UpdateState();
     }
 
@@ -84,7 +83,6 @@ public class ReservationStation
     private void OnBranchMispredict(int fetchNum)
     {
         if (!((_reservationStationData != null) && (_reservationStationData.Value.FetchNum > fetchNum))) return;
-
         Clear();
     }
 
