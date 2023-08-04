@@ -43,8 +43,10 @@ public class BranchUnit : IExecutionUnit
             _processor.ProgramCounter = _input.Value.ProgramCounter + 1;
             mispredict = true;
         }
-
         if (!mispredict) _processor.ReorderBuffer.Update(_input.Value.FetchNum, branch ? 1 : 0, null);
+        
+        _processor.BranchPredictionUnit.Notify(_input.Value.Prediction.Value, branch);
+        
         _input = null;
     }
 
