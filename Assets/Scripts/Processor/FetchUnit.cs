@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 public class FetchUnit
 {
     private readonly Processor _processor;
@@ -42,6 +44,11 @@ public class FetchUnit
         _processor.FetchCounter++;
     }
 
+    public FetchData? Peek()
+    {
+        return _output;
+    }
+    
     public FetchData? Pop()
     {
         var result = _output;
@@ -100,5 +107,15 @@ public struct FetchData
     {
         return "Instruction: " + Instruction + ", PC: " + ProgramCounter + ", FetchNum: " + FetchNum +
             ", Prediction: " + Prediction;
+    }
+}
+
+public class FetchUnitComparer : IComparer<FetchUnit>
+{
+    public int Compare(FetchUnit x, FetchUnit y)
+    {
+        if (x.Peek().Value.FetchNum > y.Peek().Value.FetchNum) return 1;
+        if (x.Peek().Value.FetchNum < y.Peek().Value.FetchNum) return -1;
+        return 0;
     }
 }

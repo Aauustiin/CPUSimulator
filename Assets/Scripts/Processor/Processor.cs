@@ -131,6 +131,7 @@ public class Processor
 
         // Assign fetched instructions to free decode units.
         var fullFetchUnits = _fetchUnits.Where(fetchUnit => fetchUnit.HasOutput()).ToArray();
+        Array.Sort(fullFetchUnits, new FetchUnitComparer());
         var emptyDecodeUnits = _decodeUnits.Where(decodeUnit => decodeUnit.IsFree()).ToArray();
         var i = 0;
         while ((i < fullFetchUnits.Count()) & (i < emptyDecodeUnits.Count()))
@@ -145,8 +146,10 @@ public class Processor
         {
             fetchUnit.Fetch();
         }
-
-        foreach (var decodeUnit in _decodeUnits)
+        
+        var fullDecodeUnits = _decodeUnits.Where(decodeUnit => !decodeUnit.IsFree()).ToArray();
+        Array.Sort(fullDecodeUnits, new DecodeUnitComparer());
+        foreach (var decodeUnit in fullDecodeUnits)
         {
             decodeUnit.Decode();
         }

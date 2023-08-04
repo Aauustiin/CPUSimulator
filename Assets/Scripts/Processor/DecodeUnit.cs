@@ -160,3 +160,13 @@ public class DecodeUnit
         return Input.ToString();
     }
 }
+
+public class DecodeUnitComparer : IComparer<DecodeUnit>
+{
+    public int Compare(DecodeUnit x, DecodeUnit y)
+    {
+        if (x.Input.Value.FetchNum > y.Input.Value.FetchNum) return 1;
+        if (x.Input.Value.FetchNum < y.Input.Value.FetchNum) return -1;
+        return 0;
+    }
+}
