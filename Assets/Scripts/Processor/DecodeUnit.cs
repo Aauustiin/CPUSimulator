@@ -71,7 +71,7 @@ public class DecodeUnit
         {
             var sourceA = GetRegisterSourceInfo(instruction.Sources[0], fetchNum);
             var sourceB = GetRegisterSourceInfo(instruction.Sources[1], fetchNum);
-            return (new int?[] { sourceA.Item1, sourceB.Item1 }, new int?[] { sourceA.Item2, sourceB.Item2 });
+            return (new int?[] { sourceA.Item1, sourceB.Item1, null }, new int?[] { sourceA.Item2, sourceB.Item2, instruction.Sources[2] });
         }
         if (AllRegOpcodes.Contains(instruction.Opcode))
         {

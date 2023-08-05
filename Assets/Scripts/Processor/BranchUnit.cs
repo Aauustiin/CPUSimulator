@@ -36,7 +36,7 @@ public class BranchUnit : IExecutionUnit
         if (branch & !_input.Value.Prediction.Value)
         {
             _processor.TriggerBranchMispredict(_input.Value.FetchNum);
-            _processor.ProgramCounter = _input.Value.SourceValues[0].Value;
+            _processor.ProgramCounter = _input.Value.SourceValues[2].Value;
             mispredict = true;
         }
         else if (!branch & _input.Value.Prediction.Value)

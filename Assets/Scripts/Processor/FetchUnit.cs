@@ -33,7 +33,7 @@ public class FetchUnit
         {
             var prediction = _processor.BranchPredictionUnit.Predict(instruction);
             _output = new FetchData(instruction, _processor.ProgramCounter, _processor.FetchCounter, prediction);
-            _processor.ProgramCounter = _output.Value.Instruction.Sources[2];
+            _processor.ProgramCounter = prediction ? _output.Value.Instruction.Sources[2] : _processor.ProgramCounter + 1;
         }
         else
         {
