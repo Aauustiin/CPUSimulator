@@ -13,4 +13,11 @@ public static class EventManager
     {
         Tock?.Invoke(info);
     }
+
+    public static System.Action<FinishedInfo> Finished;
+
+    public static void TriggerFinished(FinishedInfo info)
+    {
+        Finished?.Invoke(info);
+    }
 }

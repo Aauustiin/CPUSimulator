@@ -63,6 +63,7 @@ public class ReorderBuffer
             
             Entries[_commitPointer.Value].Free = true;
             _commitPointer = (_commitPointer + 1) % Entries.Length;
+            _processor.InstructionsExecuted++;
         }
         if (_commitPointer == _issuePointer) _commitPointer = null;
     }

@@ -16,16 +16,28 @@ public class DebugScreen : MonoBehaviour
     [SerializeField] private TextMeshProUGUI branchText;
     [SerializeField] private TextMeshProUGUI loadStoreText;
 
+    [SerializeField] private GameObject resultsPopup;
+    [SerializeField] private TextMeshProUGUI resultsText;
+
     private void OnEnable()
     {
         EventManager.Tock += OnTock;
+        EventManager.Finished += OnFinished;
+        
     }
     
     private void OnDisable()
     {
         EventManager.Tock -= OnTock;
+        EventManager.Finished -= OnFinished;
     }
 
+    private void OnFinished(FinishedInfo info)
+    {
+        resultsPopup.SetActive(true);
+        resultsText.text = info.ToString();
+    }
+    
     private void OnTock(TockInfo info)
     {
         branchPredictorText.text = info.BranchPredictorInfo;

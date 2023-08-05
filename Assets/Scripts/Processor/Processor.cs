@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using TMPro;
 using UnityEngine;
 
 public class Processor
@@ -27,6 +28,8 @@ public class Processor
     public int FetchCounter;
     public int InstructionsExecuted;
     private bool _finished;
+    private int _branchMispredictions;
+    public int BranchInstructions;
 
     public ProcessorMode ProcessorMode;
 
@@ -112,13 +115,20 @@ public class Processor
             (ProgramCounter >= Instructions.Length))
         {
             _finished = true;
-            Debug.Log("Finished! " + String.Join(' ', Registers));
+            var ipc = (float)Math.Round((double)((float)InstructionsExecuted / _cycle), 1);
+            var branchPredictionRate = (float)Math.Round((double)((float)(BranchInstructions - _branchMispredictions) / BranchInstructions), 2);
+            var finishedInfo = new FinishedInfo(InstructionsExecuted, _cycle, ipc, branchPredictionRate);
+            EventManager.TriggerFinished(finishedInfo);
         }
 
         if (_cycle > 10000)
         {
             _finished = true;
-            Debug.Log("Finished! " + String.Join(' ', Registers));
+            var ipc = (float)Math.Round((double)((float)InstructionsExecuted / _cycle), 1);
+            var branchPredictionRate = (float)Math.Round((double)((float)(BranchInstructions - _branchMispredictions) / BranchInstructions), 2);
+            var finishedInfo = new FinishedInfo(InstructionsExecuted, _cycle, ipc, branchPredictionRate);
+            EventManager.TriggerFinished(finishedInfo);
+            Debug.Log("Timeout! " + String.Join(' ', Registers));
         }
         
         // Ready reservation stations will issue to free execution units.
@@ -186,6 +196,7 @@ public class Processor
 
     public void TriggerBranchMispredict(int fetchNum)
     {
+        _branchMispredictions++;
         BranchMispredict?.Invoke(fetchNum);
     }
 
@@ -213,19 +224,46 @@ public class Processor
     }
 }
 
+public struct FinishedInfo
+{
+    public readonly int InstructionsExecuted;
+    public readonly int Cycles;
+    public readonly float InstructionsPerCycle;
+    public readonly float BranchPredictionRate;
+
+    public FinishedInfo(int instructionsExecuted,
+        int cycles,
+        float instructionsPerCycle,
+        float branchPredictionRate)
+    {
+        InstructionsExecuted = instructionsExecuted;
+        Cycles = cycles;
+        InstructionsPerCycle = instructionsPerCycle;
+        BranchPredictionRate = branchPredictionRate;
+    }
+    
+    public override string ToString()
+    {
+        return "Instructions Executed: " + InstructionsExecuted + 
+               "\nCycles: " + Cycles + 
+               "\nIPC: " + InstructionsPerCycle + 
+               "\nBranch Prediction Rate: " + BranchPredictionRate;
+    }
+}
+
 public struct TockInfo
 {
-    public string FetchUnitInfo;
-    public string DecodeUnitInfo;
-    public string BranchPredictorInfo;
-    public string RegisterAllocationTableInfo;
-    public string RegisterInfo;
-    public string MemoryInfo;
-    public string ReorderBufferInfo;
-    public string ReservationStationInfo;
-    public string IntegerArithmeticUnitInfo;
-    public string BranchUnitInfo;
-    public string LoadStoreUnitInfo;
+    public readonly string FetchUnitInfo;
+    public readonly string DecodeUnitInfo;
+    public readonly string BranchPredictorInfo;
+    public readonly string RegisterAllocationTableInfo;
+    public readonly string RegisterInfo;
+    public readonly string MemoryInfo;
+    public readonly string ReorderBufferInfo;
+    public readonly string ReservationStationInfo;
+    public readonly string IntegerArithmeticUnitInfo;
+    public readonly string BranchUnitInfo;
+    public readonly string LoadStoreUnitInfo;
 
     public TockInfo(string fetchUnitInfo, 
         string decodeUnitInfo, 

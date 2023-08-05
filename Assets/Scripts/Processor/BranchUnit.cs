@@ -22,6 +22,8 @@ public class BranchUnit : IExecutionUnit
     {
         if (_input == null) return;
 
+        _processor.BranchInstructions++;
+
         bool branch = _input.Value.Opcode switch
         {
             Opcode.BRANCHE => _input.Value.SourceValues[0].Value == _input.Value.SourceValues[1].Value,
