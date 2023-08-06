@@ -39,11 +39,13 @@ public class DecodeUnit
         _processor.ReorderBuffer.Issue(instruction.Opcode, Input.Value.FetchNum, convertedInstruction.Value.Destination, GetResultValue(convertedInstruction.Value));
         // Make a reservation station entry. - ISSUE 1: Why have I assumed that every instruction needs a reservation station entry?
         var sourceInfo = GetSourceInformation(instruction, Input.Value.FetchNum);
-        var reservationStationData = new ReservationStationData(instruction.Opcode, instruction.Destination, sourceInfo.Item1.ToArray(),
-            sourceInfo.Item2.ToArray(), Input.Value.FetchNum, Input.Value.Prediction, Input.Value.ProgramCounter);
+        if (!((instruction.Opcode == Opcode.COPY) && Array.TrueForAll(sourceInfo.Item1, x => x == null)) && (instruction.Opcode != Opcode.COPYI))
+        {
+            var reservationStationData = new ReservationStationData(instruction.Opcode, instruction.Destination, sourceInfo.Item1.ToArray(),
+                sourceInfo.Item2.ToArray(), Input.Value.FetchNum, Input.Value.Prediction, Input.Value.ProgramCounter);
+            _processor.ReservationStations[reservationStation.Value].SetReservationStationData(reservationStationData);
+        }
 
-        _processor.ReservationStations[reservationStation.Value].SetReservationStationData(reservationStationData);
-        
         Input = null;
     }
 

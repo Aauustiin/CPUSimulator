@@ -1,8 +1,8 @@
 LOADI 0 0 - Number of cells.
-LOADI 1 0 - LHS address.
+COPY 1 0 - LHS address.
 COPYI 2 1 - Current address.
 COPYI 3 2 - RHS address.
-ADD 4 0 2 - Result address.
+ADDI 4 0 1 - Result address.
 LABEL LOOP_START
 LOAD 5 3 - Decision value (initialised to RHS value.)
 LOAD 6 2 - Current value.

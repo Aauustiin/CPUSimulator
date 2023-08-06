@@ -39,6 +39,8 @@ public class ReorderBuffer
         Entries[_issuePointer.Value].Initialise(opcode, fetchNum, destination, value);
         
         _issuePointer = IsFull() ? null : (_issuePointer + 1) % Entries.Length;
+        
+        Commit();
     }
     
     // Update a given entry with a new value and/or destination.
@@ -50,18 +52,23 @@ public class ReorderBuffer
         if (value != null) Entries[entryNum].SetValue(value.Value);
         if (destination != null) Entries[entryNum].SetDestination(destination.Value);
         
-        // Commit anything that needs to be committed.
-        if (_commitPointer == null) throw new Exception();
-        while ((Entries[_commitPointer.Value].GetValue() != null) & (Entries[_commitPointer.Value].FetchNum <= fetchNum) & ((Entries[_commitPointer.Value].GetDestination() != null) | BranchUnit.CompatibleOpcodes.Contains(Entries[_commitPointer.Value].Opcode)))
+        Commit();
+    }
+
+    private void Commit()
+    {
+        while (!Entries[_commitPointer.Value].Empty &&
+                   (Entries[_commitPointer.Value].GetValue() != null) && 
+               ((Entries[_commitPointer.Value].GetDestination() != null) || BranchUnit.CompatibleOpcodes.Contains(Entries[_commitPointer.Value].Opcode.Value)))
         {
             if (_issuePointer == null) _issuePointer = _commitPointer;
             
             if (Entries[_commitPointer.Value].Opcode == Opcode.STORE)
                 _processor.Memory[Entries[_commitPointer.Value].GetDestination().Value] = Entries[_commitPointer.Value].GetValue().Value;
-            else if (!BranchUnit.CompatibleOpcodes.Contains(Entries[_commitPointer.Value].Opcode))
+            else if (!BranchUnit.CompatibleOpcodes.Contains(Entries[_commitPointer.Value].Opcode.Value))
                 _processor.Registers[Entries[_commitPointer.Value].GetDestination().Value] = Entries[_commitPointer.Value].GetValue().Value;
             
-            Entries[_commitPointer.Value].Free = true;
+            Entries[_commitPointer.Value].Free();
             _commitPointer = (_commitPointer + 1) % Entries.Length;
             _processor.InstructionsExecuted++;
         }
@@ -76,12 +83,12 @@ public class ReorderBuffer
     
     public bool IsFull()
     {
-        return Entries.All(entry => entry.Free == false);
+        return Entries.All(entry => entry.Empty == false);
     }
 
     public bool IsEmpty()
     {
-        return Entries.All(entry => entry.Free);
+        return Entries.All(entry => entry.Empty);
     }
 
     private void OnBranchMispredict(int fetchNum)
@@ -91,10 +98,10 @@ public class ReorderBuffer
 
         while (Entries[_issuePointer.Value].FetchNum != fetchNum)
         {
-            Entries[_issuePointer.Value].Free = true;
+            Entries[_issuePointer.Value].Free();
             _issuePointer = (_issuePointer - 1 + Entries.Length) % Entries.Length;
         }
-        Entries[_issuePointer.Value].Free = true;
+        Entries[_issuePointer.Value].Free();
 
         if (_issuePointer == _commitPointer) _commitPointer = null;
     }
@@ -107,11 +114,11 @@ public class ReorderBuffer
 
 public class ReorderBufferEntry
 {
-    public int Id;
-    public bool Free;
+    private readonly int id;
+    public bool Empty;
     
-    public Opcode Opcode;
-    public int FetchNum;
+    public Opcode? Opcode;
+    public int? FetchNum;
     
     private int? _destination;
     private int? _value;
@@ -120,24 +127,33 @@ public class ReorderBufferEntry
 
     public ReorderBufferEntry(int id)
     {
-        Id = id;
-        Free = true;
+        this.id = id;
+        Empty = true;
     }
     
     public void Initialise(Opcode  opcode, int fetchNum, int? destination, int? value)
     {
-        Free = false;
+        Empty = false;
         
         Opcode = opcode;
         FetchNum = fetchNum;
         _destination = destination;
         _value = value;
     }
+
+    public void Free()
+    {
+        Empty = true;
+        Opcode = null;
+        FetchNum = null;
+        _destination = null;
+        _value = null;
+    }
     
     public void SetValue(int value)
     {
         _value = value;
-        ValueProvided?.Invoke(Id);
+        ValueProvided?.Invoke(id);
     }
 
     public int? GetValue()
@@ -152,16 +168,16 @@ public class ReorderBufferEntry
 
     public int? GetDestination()
     {
-        return Free ? null : _destination;
+        return Empty ? null : _destination;
     }
 
     public override string ToString()
     {
-        if (!Free)
-            return "ID: " + Id + ", Opcode: " + Opcode + ", Destination: " + _destination +
+        if (!Empty)
+            return "ID: " + id + ", Opcode: " + Opcode + ", Destination: " + _destination +
                    ", Value: " + _value + ", Fetch Number: " + FetchNum;
         
-        return "ID: " + Id + ", Free";
+        return "ID: " + id + ", Free";
     }
 }
 
