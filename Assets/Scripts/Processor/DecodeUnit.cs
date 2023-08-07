@@ -24,6 +24,10 @@ public class DecodeUnit
     {
         // If we haven't been given anything to decode, or we haven't been able to give our output to a reservation station, do nothing.
         if (Input == null) return;
+
+        // If there is no space in the ROB or the reservation stations, stall. - ISSUE 2: But what about for instructions that don't need a reservation station?
+        var reservationStation = _processor.GetAvailableReservationStation();
+        if ((reservationStation == null) | _processor.ReorderBuffer.IsFull()) return;
         
         var instruction = Input.Value.Instruction;
         var convertedInstruction = _processor.RegisterRenaming ? _processor.RegisterAllocationTable.ConvertInstruction(instruction) : instruction;
@@ -31,17 +35,13 @@ public class DecodeUnit
         // If there is no available destination register, then stall.
         if (convertedInstruction == null) return;
 
-        // If there is no space in the ROB or the reservation stations, stall. - ISSUE 2: But what about for instructions that don't need a reservation station?
-        var reservationStation = _processor.GetAvailableReservationStation();
-        if ((reservationStation == null) | _processor.ReorderBuffer.IsFull()) return;
-
         // Make a ROB entry.
-        _processor.ReorderBuffer.Issue(instruction.Opcode, Input.Value.FetchNum, convertedInstruction.Value.Destination, GetResultValue(convertedInstruction.Value));
+        _processor.ReorderBuffer.Issue(convertedInstruction.Value.Opcode, Input.Value.FetchNum, convertedInstruction.Value.Destination, GetResultValue(convertedInstruction.Value));
         // Make a reservation station entry. - ISSUE 1: Why have I assumed that every instruction needs a reservation station entry?
-        var sourceInfo = GetSourceInformation(instruction, Input.Value.FetchNum);
-        if (!((instruction.Opcode == Opcode.COPY) && Array.TrueForAll(sourceInfo.Item1, x => x == null)) && (instruction.Opcode != Opcode.COPYI))
+        var sourceInfo = GetSourceInformation(convertedInstruction.Value, Input.Value.FetchNum);
+        if (!((convertedInstruction.Value.Opcode == Opcode.COPY) && Array.TrueForAll(sourceInfo.Item1, x => x == null)) && (convertedInstruction.Value.Opcode != Opcode.COPYI))
         {
-            var reservationStationData = new ReservationStationData(instruction.Opcode, instruction.Destination, sourceInfo.Item1.ToArray(),
+            var reservationStationData = new ReservationStationData(convertedInstruction.Value.Opcode, convertedInstruction.Value.Destination, sourceInfo.Item1.ToArray(),
                 sourceInfo.Item2.ToArray(), Input.Value.FetchNum, Input.Value.Prediction, Input.Value.ProgramCounter);
             _processor.ReservationStations[reservationStation.Value].SetReservationStationData(reservationStationData);
         }

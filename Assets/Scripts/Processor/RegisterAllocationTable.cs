@@ -1,19 +1,20 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
 public class RegisterAllocationTable
 {
-    private readonly int[] _table;
+    public readonly int[] Table;
     private readonly Processor _processor;
     
     public RegisterAllocationTable(int size, Processor processor)
     {
-        _table = new int[size];
+        Table = new int[size];
         for (var i = 0; i < size; i++)
         {
-            _table[i] = i;
+            Table[i] = i;
         }
 
         _processor = processor;
@@ -21,35 +22,45 @@ public class RegisterAllocationTable
 
     public Instruction? ConvertInstruction(Instruction instruction)
     {
+        var convertedSources = ConvertSources(instruction);
+
         var potentialNewDestination = _processor.GetAvailableRegister();
         if ((instruction.Destination != null) & (potentialNewDestination == null)) return null;
 
         if ((instruction.Destination != null) & (potentialNewDestination != null))
-            _table[instruction.Destination.Value] = potentialNewDestination.Value;
+            Table[instruction.Destination.Value] = potentialNewDestination.Value;
         
         // We don't wanna convert all the sources, only those that are references to registers
         return new Instruction(instruction.Opcode, 
             instruction.Destination == null ? null : potentialNewDestination,
-            ConvertSources(instruction));
+            convertedSources);
     }
 
-    public List<int> ConvertSources(Instruction instruction)
+    private List<int> ConvertSources(Instruction instruction)
     {
-        if (DecodeUnit.AllRegOpcodes.Contains(instruction.Opcode) | (instruction.Opcode == Opcode.LOAD))
+        return instruction.Opcode switch
         {
-            return instruction.Sources.Select(source => _table[source]).ToList();
-        }
-
-        if (DecodeUnit.RegImmOpcodes.Contains(instruction.Opcode))
-        {
-            return new List<int> { _table[instruction.Sources[0]], instruction.Sources[1] };
-        }
-
-        return instruction.Sources;
+            Opcode.ADD => new List<int>() {Table[instruction.Sources[0]], Table[instruction.Sources[1]]},
+            Opcode.ADDI => new List<int>() {Table[instruction.Sources[0]], instruction.Sources[1]},
+            Opcode.SUB => new List<int>() {Table[instruction.Sources[0]], Table[instruction.Sources[1]]},
+            Opcode.SUBI => new List<int>() {Table[instruction.Sources[0]], instruction.Sources[1]},
+            Opcode.MUL => new List<int>() {Table[instruction.Sources[0]], Table[instruction.Sources[1]]},
+            Opcode.DIV => new List<int>() {Table[instruction.Sources[0]], Table[instruction.Sources[1]]},
+            Opcode.MOD => new List<int>() {Table[instruction.Sources[0]], Table[instruction.Sources[1]]},
+            Opcode.COPY => new List<int>() {Table[instruction.Sources[0]]},
+            Opcode.COPYI => new List<int>() {instruction.Sources[0]},
+            Opcode.LOAD => new List<int>() {Table[instruction.Sources[0]]},
+            Opcode.LOADI => new List<int>() {instruction.Sources[0]},
+            Opcode.STORE => new List<int>() {Table[instruction.Sources[0]], Table[instruction.Sources[1]]},
+            Opcode.BRANCHE => new List<int>() {Table[instruction.Sources[0]], Table[instruction.Sources[1]], instruction.Sources[2]},
+            Opcode.BRANCHG => new List<int>() {Table[instruction.Sources[0]], Table[instruction.Sources[1]], instruction.Sources[2]},
+            Opcode.BRANCHGE => new List<int>() {Table[instruction.Sources[0]], Table[instruction.Sources[1]], instruction.Sources[2]},
+            _ => throw new ArgumentOutOfRangeException()
+        };
     }
 
     public override string ToString()
     {
-        return String.Join(' ', _table);
+        return String.Join(' ', Table);
     }
 }

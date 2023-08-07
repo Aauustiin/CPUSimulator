@@ -7129,7 +7129,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 8
+  m_text: 16
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -11607,6 +11607,8 @@ MonoBehaviour:
       m_Image: {fileID: 0}
     - m_Text: Rule 110
       m_Image: {fileID: 0}
+    - m_Text: Renaming Test
+      m_Image: {fileID: 0}
   m_OnValueChanged:
     m_PersistentCalls:
       m_Calls: []
@@ -13475,7 +13477,7 @@ MonoBehaviour:
   m_MinValue: 2
   m_MaxValue: 64
   m_WholeNumbers: 1
-  m_Value: 8
+  m_Value: 16
   m_OnValueChanged:
     m_PersistentCalls:
       m_Calls:

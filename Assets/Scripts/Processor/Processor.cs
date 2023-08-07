@@ -212,6 +212,10 @@ public class Processor
             var destination = entry.GetDestination();
             if (destination != null) potentialRegisters.Remove(entry.GetDestination().Value);
         }
+        foreach (var elem in RegisterAllocationTable.Table)
+        {
+            potentialRegisters.Remove(elem);
+        }
 
         if (potentialRegisters.Count == 0) return null;
         return potentialRegisters[0];

@@ -47,6 +47,7 @@ public class InitialisationForm : MonoBehaviour
             "Super Simple Sum" => "Assets\\Scripts\\Assembly\\Tests\\SuperSimpleSum.txt",
             "Sub and Mod" => "Assets\\Scripts\\Assembly\\Tests\\SubMod.txt",
             "Rule 110" => "Assets\\Scripts\\Assembly\\Experiments\\Rule110.txt",
+            "Renaming Test" => "Assets\\Scripts\\Assembly\\Tests\\RenamingTest.txt",
             _ => throw new ArgumentOutOfRangeException()
         };
         // Would be better if this were written into the same file that the assembly is? Or maybe a different file?
@@ -56,12 +57,13 @@ public class InitialisationForm : MonoBehaviour
             "Simple Sum" => new int[] { 3, 4 },
             "Super Simple Sum" => new int[] {},
             "Sub and Mod" => new int[] {},
-            //"Rule 110" => new int[]
-            //{
-            //    24, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 0, 0, 0, 1, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0,
-            //    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-            //},
-            "Rule 110" => new int[] { 3, 0, 1, 0, 0, 0, 0 },
+            "Renaming Test" => new int[] { 3, 0, 0 },
+            "Rule 110" => new int[]
+            {
+                10,
+                0, 1, 1, 0, 1, 0, 0, 0, 1, 1,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+            },
             _ => throw new ArgumentOutOfRangeException()
         };
         var program = Parsing.LoadProgram(filePath);
