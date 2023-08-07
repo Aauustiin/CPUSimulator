@@ -117,7 +117,7 @@ public class Processor
             _finished = true;
             var ipc = (float)Math.Round((double)((float)InstructionsExecuted / _cycle), 1);
             var branchPredictionRate = (float)Math.Round((double)((float)(BranchInstructions - _branchMispredictions) / BranchInstructions), 2);
-            var finishedInfo = new FinishedInfo(InstructionsExecuted, _cycle, ipc, branchPredictionRate);
+            var finishedInfo = new FinishedInfo(InstructionsExecuted, _cycle, ipc, BranchInstructions, _branchMispredictions, branchPredictionRate);
             EventManager.TriggerFinished(finishedInfo);
         }
 
@@ -126,7 +126,7 @@ public class Processor
             _finished = true;
             var ipc = (float)Math.Round((double)((float)InstructionsExecuted / _cycle), 1);
             var branchPredictionRate = (float)Math.Round((double)((float)(BranchInstructions - _branchMispredictions) / BranchInstructions), 2);
-            var finishedInfo = new FinishedInfo(InstructionsExecuted, _cycle, ipc, branchPredictionRate);
+            var finishedInfo = new FinishedInfo(InstructionsExecuted, _cycle, ipc, BranchInstructions, _branchMispredictions, branchPredictionRate);
             EventManager.TriggerFinished(finishedInfo);
             Debug.Log("Timeout! " + String.Join(' ', Registers));
         }
@@ -228,30 +228,38 @@ public class Processor
     }
 }
 
-public struct FinishedInfo
+public readonly struct FinishedInfo
 {
-    public readonly int InstructionsExecuted;
-    public readonly int Cycles;
-    public readonly float InstructionsPerCycle;
-    public readonly float BranchPredictionRate;
+    private readonly int instructionsExecuted;
+    private readonly int cycles;
+    private readonly float instructionsPerCycle;
+    private readonly float branchInstructions;
+    private readonly float branchMispredictions;
+    private readonly float branchPredictionRate;
 
     public FinishedInfo(int instructionsExecuted,
         int cycles,
         float instructionsPerCycle,
+        int branchInstructions,
+        int branchMispredictions,
         float branchPredictionRate)
     {
-        InstructionsExecuted = instructionsExecuted;
-        Cycles = cycles;
-        InstructionsPerCycle = instructionsPerCycle;
-        BranchPredictionRate = branchPredictionRate;
+        this.instructionsExecuted = instructionsExecuted;
+        this.cycles = cycles;
+        this.instructionsPerCycle = instructionsPerCycle;
+        this.branchInstructions = branchInstructions;
+        this.branchMispredictions = branchMispredictions;
+        this.branchPredictionRate = branchPredictionRate;
     }
     
     public override string ToString()
     {
-        return "Instructions Executed: " + InstructionsExecuted + 
-               "\nCycles: " + Cycles + 
-               "\nIPC: " + InstructionsPerCycle + 
-               "\nBranch Prediction Rate: " + BranchPredictionRate;
+        return "Instructions Executed: " + instructionsExecuted + 
+               "\nCycles: " + cycles + 
+               "\nIPC: " + instructionsPerCycle + 
+               "\nBranch Instructions: " + branchInstructions +
+               "\nBranch Mispredictions: " + branchMispredictions +
+               "\nBranch Prediction Rate: " + branchPredictionRate;
     }
 }
 
