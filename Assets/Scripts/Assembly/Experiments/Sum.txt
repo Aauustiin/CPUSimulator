@@ -1,0 +1,13 @@
+﻿LOADI 0 0 - Number of cells
+COPYI 1 1 - Cell address A
+ADDI 2 0 1 - Cell address B
+ADD 3 0 2 - Result address
+LABEL ALPHA
+LOAD 4 1 - Cell contents A
+LOAD 5 2 - Cell Contents B
+ADD 6 4 5 - Sum
+STORE 3 6
+ADDI 1 1 1
+ADDI 2 2 1
+ADDI 3 3 1
+BRANCHGE 0 1 ALPHA

@@ -42,18 +42,19 @@ public class InitialisationForm : MonoBehaviour
     {
         var filePath = programDropdown.captionText.text switch
         {
-            "Sum" => "Assets\\Scripts\\Assembly\\Tests\\Sum.txt",
+            "Sum" => "Assets\\Scripts\\Assembly\\Experiments\\Sum.txt",
             "Simple Sum" => "Assets\\Scripts\\Assembly\\Tests\\SimpleSum.txt",
             "Super Simple Sum" => "Assets\\Scripts\\Assembly\\Tests\\SuperSimpleSum.txt",
             "Sub and Mod" => "Assets\\Scripts\\Assembly\\Tests\\SubMod.txt",
             "Rule 110" => "Assets\\Scripts\\Assembly\\Experiments\\Rule110.txt",
+            "Blur" => "Assets\\Scripts\\Assembly\\Experiments\\Blur.txt",
             "Renaming Test" => "Assets\\Scripts\\Assembly\\Tests\\RenamingTest.txt",
             _ => throw new ArgumentOutOfRangeException()
         };
         // Would be better if this were written into the same file that the assembly is? Or maybe a different file?
         var memory = programDropdown.captionText.text switch
         {
-            "Sum" => new int[] { 5, 2, 3, 4, 5, 6 },
+            "Sum" => new int[] { 3, 1, 2, 3, 4, 5, 6, 0, 0, 0 },
             "Simple Sum" => new int[] { 3, 4 },
             "Super Simple Sum" => new int[] {},
             "Sub and Mod" => new int[] {},
@@ -63,6 +64,13 @@ public class InitialisationForm : MonoBehaviour
                 10,
                 0, 1, 1, 0, 1, 0, 0, 0, 1, 1,
                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+            },
+            "Blur" => new int[]
+            {
+                3, 3,
+                6, 2, 4,
+                7, 1, 7,
+                3, 6, 8
             },
             _ => throw new ArgumentOutOfRangeException()
         };
