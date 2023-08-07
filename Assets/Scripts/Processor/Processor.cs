@@ -14,6 +14,7 @@ public class Processor
     public readonly ReservationStation[] ReservationStations;
     public readonly ReorderBuffer ReorderBuffer;
 
+    public readonly (int, int)[] VectorRegisters;
     public readonly int[] Registers;
     public readonly RegisterAllocationTable RegisterAllocationTable;
     
@@ -74,6 +75,7 @@ public class Processor
 
         ReorderBuffer = new ReorderBuffer(processorSpecification.ReorderBufferSize, this);
 
+        VectorRegisters = new (int, int)[8];
         Registers = new int[processorSpecification.NumPhysicalRegisters];
         RegisterAllocationTable = new RegisterAllocationTable(processorSpecification.NumArchitecturalRegisters, this);
 

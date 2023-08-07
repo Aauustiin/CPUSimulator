@@ -11599,15 +11599,9 @@ MonoBehaviour:
     m_Options:
     - m_Text: Sum
       m_Image: {fileID: 0}
-    - m_Text: Simple Sum
-      m_Image: {fileID: 0}
-    - m_Text: Super Simple Sum
-      m_Image: {fileID: 0}
-    - m_Text: Sub and Mod
-      m_Image: {fileID: 0}
     - m_Text: Rule 110
       m_Image: {fileID: 0}
-    - m_Text: Renaming Test
+    - m_Text: Blur
       m_Image: {fileID: 0}
   m_OnValueChanged:
     m_PersistentCalls:

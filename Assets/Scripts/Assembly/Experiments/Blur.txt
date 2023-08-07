@@ -1,82 +1,76 @@
 LOADI 0 0 - Load the width of the image.
 LOADI 1 1 - Load the height of the image.
-
 MUL 2 0 1 - Calculate Width * Height
 COPYI 3 2 - Current pixel address.
-ADD 4 2 3 - Current result address.
-LOAD 5 3 - Running total.
-
+ADDI 4 2 2 - Current result address.
 LABEL LOOP_START
-
-ADDI 6 3 1
-MOD 6 6 0
-
-
-Calculate address of neighbour to the right
-Load it's value
-Add value to running total
-
-ADDI 5 1 - Calculate address of the neighbour to the right.
-COPY 7 3
-SUBI 7 1
-MOD 7 0
-CMPI 7 0
-BRANCHE 7 4
-LOAD 7 5 - Load value of neighbour pixel into register 7.
-ADD 4 7 - Add pixel to the right to the running total.
-ADDI 6 1 - Increment neighbour counter.
-COPY 7 2
-SUB 7 0
-ADDI 7 1
-CMP 7 3 - Should be +1
-BRANCHG 7 14
-ADD 5 0 - Calculate address of bottom right neighbour.
-LOAD 7 5 - Load value of neighbour pixel into register 7.
-ADD 4 7 - Add to running total.
-ADDI 6 1 - Increment neighbour counter.
-SUBI 5 1 - Bottom centre neighbour address.
-LOAD 7 5 - Load value of neighbour pixel into register 7.
-ADD 4 7 - Add to running total.
-ADDI 6 1 - Increment counter.
-SUBI 5 1 - Bottom left neighbour address.
-LOAD 7 5 - Load value of neighbour pixel into register 7.
-ADD 4 7 - Add to running total
-ADDI 6 1 - Increment counter.
-JUMP 3 0
-ADD 5 0
-SUBI 5 2
-SUB 5 0 - Left neighbour address.
-COPY 7 3
-SUBI 7 2
-MOD 7 0
-CMPI 7 0
-BRANCHE 7 4
-LOAD 7 5 - Load value of neighbour pixel into register 7.
-ADD 4 7 - Add to running total.
-ADDI 6 1 - Increment neighbour counter.
-COPY 7 0
-ADDI 7 2
-COPY 9 3
-CMP 9 7 - +1 means IS on top row, so branch.
-BRANCHG 9 13
-SUB 5 0 - Top left neighbour address.
-LOAD 7 5 - Load value of neighbour pixel into register 7.
-ADD 4 7 - Add to running total.
-ADDI 6 1 - Increment neighbour counter.
-ADDI 5 1 - Top centre neighbour address.
-LOAD 7 5 - Load value of neighbour pixel into register 7.
-ADD 4 7 - Add to running total.
-ADDI 6 1 - Increment counter.
-ADDI 5 1 - Top right neighbour address.
-LOAD 7 5 - Load value of neighbour pixel into register 7.
-ADD 4 7 - Add to running total.
-ADDI 6 1 - Increment counter.
-DIV 4 6 - Divide running total by number of neighbours.
-COPY 10 3
-ADD 10 2
-STORE 10 4
-ADDI 3 1
-COPY 11 2
-ADDI 11 2
-COPY 12 3
-CMP 12 11
+COPYI 5 0 - Running total.
+COPYI 6 0 - Number of neighbours
+COPYI 18 1 - Are we on left edge?
+COPYI 19 1 - Are we on right edge?
+LOAD 7 3
+ADD 5 5 7 - Add current pixel value to running total.
+ADDI 7 3 1 - RHS address.
+MOD 8 7 0
+COPYI 9 2
+BRANCHE 8 9 RIGHT_EDGE - Are we on the right hand edge?
+LOAD 10 7
+ADD 5 5 10
+ADDI 6 6 1
+COPYI 19 0
+LABEL RIGHT_EDGE
+SUBI 7 3 1 - LHS address.
+MOD 8 7 0
+COPYI 9 1
+BRANCHE 8 9 LEFT_EDGE - Are we on the left hand edge?
+LOAD 10 7
+ADD 5 5 10
+ADDI 6 6 1
+COPYI 18 0
+LABEL LEFT_EDGE
+SUB 7 3 0 - Top address.
+COPYI 8 2
+BRANCHG 8 7 TOP_EDGE - Are we on the top edge?
+LOAD 10 7
+ADD 5 5 10
+ADDI 6 6 1
+COPYI 8 1
+BRANCHE 8 18 X - Are we on the left edge?
+SUBI 7 7 1
+LOAD 10 7
+ADD 5 5 10
+ADDI 6 6 1
+ADDI 7 7 1
+LABEL X
+BRANCHE 8 19 TOP_EDGE - Are we on the right edge?
+ADDI 7 7 1
+LOAD 10 7
+ADD 5 5 10
+ADDI 6 6 1
+LABEL TOP_EDGE
+ADD 7 3 0 - Bottom address.
+ADDI 8 2 1
+BRANCHG 7 8 BOTTOM_EDGE - Are we on the bottom edge?
+LOAD 10 7
+ADD 5 5 10
+ADDI 6 6 1
+COPYI 8 1
+BRANCHE 8 18 Y - Are we on the left edge?
+SUBI 7 7 1
+LOAD 10 7
+ADD 5 5 10
+ADDI 6 6 1
+ADDI 7 7 1
+LABEL Y
+BRANCHE 8 19 BOTTOM_EDGE - Are we on the right edge?
+ADDI 7 7 1
+LOAD 10 7
+ADD 5 5 10
+ADDI 6 6 1
+LABEL BOTTOM_EDGE
+DIV 5 5 6
+STORE 4 5
+ADDI 3 3 1
+ADDI 4 4 1
+ADDI 20 2 1
+BRANCHGE 20 3 LOOP_START

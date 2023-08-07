@@ -17,6 +17,9 @@ public enum Opcode {
     BRANCHG,
     BRANCHGE,
     JUMP,
+    VEC_ADD,
+    VEC_LOAD,
+    VEC_STORE
 }
 
 public readonly struct Instruction

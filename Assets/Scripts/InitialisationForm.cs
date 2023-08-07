@@ -70,7 +70,10 @@ public class InitialisationForm : MonoBehaviour
                 3, 3,
                 6, 2, 4,
                 7, 1, 7,
-                3, 6, 8
+                3, 6, 8,
+                0, 0, 0,
+                0, 0, 0,
+                0, 0, 0
             },
             _ => throw new ArgumentOutOfRangeException()
         };
